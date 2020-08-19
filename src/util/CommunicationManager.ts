@@ -2,7 +2,7 @@ import MetadataFileGenerator from "./MetadataFileGenerator";
 import { FileUtil } from "./FileUtil";
 import * as N3 from "n3"
 import { PermissionManager, createPermission, MODES } from "./PermissionManager";
-import SelectInput from "@material-ui/core/Select/SelectInput";
+const { default: data } = require('@solid/query-ldflex');
 
 const FOAF = "http://xmlns.com/foaf/0.1/";
 const DCTERMS = "http://purl.org/dc/terms/";
@@ -158,11 +158,7 @@ export default class CommunicationManager {
     profileURI: string,
     papersDirectoryURI?: string | undefined
   ) {
-    const store = await this.getDataStoreFromFile(profileURI);
-    if (!store) return null;
-    let collection = await this.getResearchPaperCollectionFromStore(
-      store
-    );
+    let collection = await this.getResearchPaperCollectionFromFile(profileURI);
     if (!papersDirectoryURI) {
       papersDirectoryURI =
         this.getBaseIRI(profileURI) + "papers/";
@@ -175,24 +171,20 @@ export default class CommunicationManager {
         papersDirectoryURI
       );
     }
-    let newProfileStore = await this.getDataStoreFromFile(
+    collection = await this.getResearchPaperCollectionFromFile(
       profileURI
     );
-    if (!newProfileStore) return null;
-    collection = await this.getResearchPaperCollectionFromStore(
-      newProfileStore
-    );
 
-    if (
-      collection &&
-      collection["viewid"] &&
-      !(await this.fu.fileExists(collection["viewid"]))
-    ) {
-      return await this.addPaperCollectionFile(
-        collection["viewid"],
-        papersDirectoryURI
-      );
-    }
+    // if (
+    //   collection &&
+    //   collection["viewid"] &&
+    //   !(await this.fu.fileExists(collection["viewid"]))
+    // ) {
+    //   return await this.addPaperCollectionFile(
+    //     collection["viewid"],
+    //     papersDirectoryURI
+    //   );
+    // }
     return null;
   }
 
@@ -255,63 +247,37 @@ export default class CommunicationManager {
   async getResearchPapers(
     profileURI: string
   ): Promise<Array<PaperMetadata>> {
-    const collection = await this.getResearchPaperCollectionFromFile(
-      profileURI
-    );
-    if (!collection) return [];
-    // TODO: USE COMUNICA FOR THIS TO AUTOMATICALLY FOLLOW RELATIONS IN THE DATA.
-    const collectionViewURIs = collection.viewid
-      ? [collection.collectionid, collection.viewid]
-      : [collection.collectionid];
-    let researchPapers: Array<PaperMetadata> = [];
-    for (let collectionView of collectionViewURIs) {
-      researchPapers = researchPapers.concat(
-        await this.getResearchPapersFromFile(collectionView)
-      );
+    // 1: Scanning the profile card for collections of research papers
+    const card = data[profileURI.split('#')[0]];
+    let paperDirectories = [];
+    if (!card) return [];
+    for await (const subject of card.subjects) {
+      // A paperdirectory is a Collection of ResearchPapers
+      if (await subject["type"].value === HYDRA + "Collection"
+        && await subject[DCTERMS + "subject"].value === RESEARCH_PAPER_CLASS) {
+        paperDirectories.push(await subject[HYDRA + "view"].value);
+      }
     }
-    return researchPapers;
-  }
 
-  async getResearchPapersFromFile(
-    fileURI: string
-  ): Promise<Array<PaperMetadata>> {
-    const store = await this.getDataStoreFromFile(fileURI);
-    let paperIds = store
-      .getQuads(null, RDF + "type", RESEARCH_PAPER_CLASS, null)
-      .map((quad: N3.Quad) => quad.subject.id);
-    return paperIds.map((paperId: string) => {
-      const titleQuad = store.getQuads(
-        paperId,
-        DCTERMS + "title",
-        null,
-        null
-      )[0];
-      const locationQuad = store.getQuads(
-        paperId,
-        RDFS + "seeAlso",
-        null,
-        null
-      )[0];
-      const publisherQuad = store.getQuads(
-        paperId,
-        DCTERMS + "publisher",
-        null,
-        null
-      )[0];
-      return {
-        id: paperId,
-        title:
-          titleQuad &&
-          (titleQuad.object.value || titleQuad.object.id),
-        metadatalocation:
-          locationQuad &&
-          (locationQuad.object.value || locationQuad.object.id),
-        publisher:
-          publisherQuad &&
-          (publisherQuad.object.value ||
-            publisherQuad.object.id),
-      };
-    });
+    // 2: Scanning each collection for Readable papers
+    let papers: PaperMetadata[] = [];
+    for (let dir of paperDirectories) {
+      for await (let file of data[dir].subjects) {
+        if (file.value && file.value.includes("_meta")) { // TODO: end with .meta?
+
+          let paper = await data[file][RDFS + "subject"];
+          papers.push({
+            id: paper.value,
+            title: await paper[DCTERMS + "title"].value,
+            metadatalocation: file.value,
+            publisher: await paper[DCTERMS + "publisher"].value
+          });
+        }
+      }
+    }
+
+    console.log(papers)
+    return papers;
   }
 
   async patchProfileWithPaperCollection(
@@ -324,7 +290,7 @@ export default class CommunicationManager {
     const paperCollectionURI =
       profileURIhashtag + PARERSCOLLECTIONNAME;
     const partialCollectionViewId =
-      papersDirectoryURI + PAPERSCOLLECTIONFILE;
+      papersDirectoryURI /*+ PAPERSCOLLECTIONFILE; */
     const contents =
       "INSERT DATA {  \
         <" +
@@ -345,7 +311,7 @@ export default class CommunicationManager {
       <" +
       HYDRA +
       "view> <" +
-      partialCollectionViewId +
+      papersDirectoryURI +
       "> . \
       <" +
       partialCollectionViewId +

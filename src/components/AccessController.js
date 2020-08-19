@@ -9,7 +9,7 @@ import "./AccessController.css"
 
 export class AccessController extends React.Component {
 
-  	constructor(props) {
+	constructor(props) {
 		super(props);
 
 		this.cm = props.cm || new CommunicationManager(solid);
@@ -18,7 +18,7 @@ export class AccessController extends React.Component {
 		this.state = {
 			userHasControl: false,
 			documentURI,
-      		contacts: [],
+			contacts: [],
 			permissions: [],
 			commentPermissions: [],
 			tableData: []

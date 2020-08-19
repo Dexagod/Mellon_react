@@ -70,6 +70,6 @@ html, body, #root, #app, #app>div {
   padding: 10px;
   z-index: 1000;
   right: 0px;
-  background-color: white;
+  background-color: whitesmoke;
   position: absolute;
 }
