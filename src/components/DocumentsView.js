@@ -48,22 +48,23 @@ export default class DocumentsView extends React.Component {
 
     async asyncInit() {
       const session = await solid.currentSession()
-      if(!session) return
+      if(!session) { this.setState({ loading: false }); return; }
       this.webId = session.webId
-      if(! this.webId) return;
+      if(! this.webId) { this.setState({ loading: false }); return; }
       let collection = await this.cm.getResearchPaperCollectionFromFile(this.webId);
-      this.setState({searchId: this.webId, collection: !!collection })
-      this.asyncUpdate(this.state.searchId);
+      this.setState({searchId: this.webId, collection: !!collection }, () => {
+        this.asyncUpdate(this.state.searchId)
+      });
     }
 
     async asyncUpdate(searchId, afterUpdateCallback = () => {}){
       console.log("getting", this.state, this.webId)
-      if(!this.state.collection) return;
+      if(!this.state.collection) { this.setState({ loading: false }); return; }
       const webId = searchId || this.webId
       const fileData = new Map();
       let documents = await this.cm.getResearchPapers(webId);
       if(!documents || documents.length === 0) {
-        this.setState({files: []})
+        this.setState({ files: [], loading: false })
         return;
       }
       for (let document of documents) {
