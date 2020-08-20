@@ -336,7 +336,8 @@ export default class CommunicationManager {
       HYDRA +
       "view> <" +
       papersDirectoryURI +
-      "> .";
+      "> . \
+      }";
     let patch = this.fu.patchFile(profileURI, contents);
     return patch;
   }

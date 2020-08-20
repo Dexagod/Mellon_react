@@ -1,7 +1,7 @@
 import CommunicationManager, { Notification } from "./CommunicationManager";
 import { fstat } from "fs";
 // This code is based on the solid-notifications package found at https://github.com/solid/solid-notifications
-const DEFAULT_CONTENT_TYPE = "application/ld+json";
+const DEFAULT_CONTENT_TYPE = "text/turtle";
 const DEFAULT_ACCEPT = "application/ld+json;q=0.9,text/turtle;q=0.8";
 const INBOX_LINK_REL = "http://www.w3.org/ns/ldp#inbox";
 
