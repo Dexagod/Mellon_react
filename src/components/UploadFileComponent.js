@@ -116,7 +116,10 @@ export class UploadFileComponent extends React.Component
     // Notified people can read the paper
     console.log("Setting READ for all selected contacts");
     this.cm.pm.createACL(paperURI,
-      [createPermission([MODES.READ], contacts)]
+      contacts.length ? [createPermission([MODES.READ], contacts)] : []
+    );
+    this.cm.pm.createACL(this.cm.getMetadataURI(paperURI),
+      contacts.length ? [createPermission([MODES.READ], contacts)] : []
     );
 
     // create notification

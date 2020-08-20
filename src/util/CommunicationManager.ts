@@ -262,17 +262,43 @@ export default class CommunicationManager {
     // 2: Scanning each collection for Readable papers
     let papers: PaperMetadata[] = [];
     for (let dir of paperDirectories) {
-      for await (let file of data[dir].subjects) {
-        if (file.value && file.value.includes("_meta")) { // TODO: end with .meta?
+      try {
+        for await (let file of data[dir].subjects) {
+          try {
+            if (file.value && file.value.includes("_meta")) { // TODO: end with .meta?
+              let paperURI = null
+              try {
+                paperURI = await data[file][RDFS + "subject"];
+              } catch {
+                console.warn(`Could not read metafile '${file.value}'.`);
+                continue
+              }
+              let title = await paperURI[DCTERMS + "title"].value;
 
-          let paper = await data[file][RDFS + "subject"];
-          papers.push({
-            id: paper.value,
-            title: await paper[DCTERMS + "title"].value,
-            metadatalocation: file.value,
-            publisher: await paper[DCTERMS + "publisher"].value
-          });
+              // To make sure the paper itself is there and readable
+              await this.auth.fetch(paperURI, { method: 'HEAD' })
+                .catch((err: any) => {
+                  throw new Error("'continue' this loop with error");
+                })
+                .then((res: any) => {
+                  if (!res.ok) {
+                    console.warn(`Could not get to document with title '${title}'.`);
+                    throw new Error("Catch this error and continue loop");
+                  }
+                })
+
+              papers.push({
+                id: paperURI.value,
+                title: title,
+                metadatalocation: file.value,
+                publisher: await paperURI[DCTERMS + "publisher"].value
+              });
+            }
+          } catch {}
         }
+      } catch {
+        // No read permission on this paper directory
+        console.warn(`Something went wrong while trying to read '${dir}'.`);
       }
     }
 
@@ -289,8 +315,6 @@ export default class CommunicationManager {
     const profileURIhashtag = profileURI.split("#")[0] + "#";
     const paperCollectionURI =
       profileURIhashtag + PARERSCOLLECTIONNAME;
-    const partialCollectionViewId =
-      papersDirectoryURI /*+ PAPERSCOLLECTIONFILE; */
     const contents =
       "INSERT DATA {  \
         <" +
@@ -312,14 +336,7 @@ export default class CommunicationManager {
       HYDRA +
       "view> <" +
       papersDirectoryURI +
-      "> . \
-      <" +
-      partialCollectionViewId +
-      "> <" +
-      RDF +
-      "type> <" +
-      HYDRA +
-      "PartialCollectionView> }";
+      "> .";
     let patch = this.fu.patchFile(profileURI, contents);
     return patch;
   }
