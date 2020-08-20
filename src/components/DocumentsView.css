@@ -30,3 +30,9 @@
 .chonky {
   height: 100%;
 }
+
+.fileLoader {
+  margin: auto;
+  margin-top: 50px;
+  width: fit-content;
+}
