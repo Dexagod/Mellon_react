@@ -1,7 +1,7 @@
 import MetadataFileGenerator from "./MetadataFileGenerator";
 import { FileUtil } from "./FileUtil";
 import * as N3 from "n3"
-import { PermissionManager, createPermission, MODES } from "./PermissionManager";
+import { PermissionManager } from "./PermissionManager";
 const { default: data } = require('@solid/query-ldflex');
 
 const FOAF = "http://xmlns.com/foaf/0.1/";
@@ -16,10 +16,8 @@ const SIOC = "http://rdfs.org/sioc/ns#"
 const AS = "https://www.w3.org/ns/activitystreams#"
 
 
-const DEFAULTPAPERSDIRECTORY = "papers/";
-const PAPERSCOLLECTIONFILE = "papers_collectionview.ttl";
+const DEFAULTPAPERSDIRECTORY = "papers/";  // Should end with '/'!
 const PARERSCOLLECTIONNAME = "researchPaperCollection";
-
 const DEFAULTCOMMENTSDIRECTORY = "comments/";
 
 export default class CommunicationManager {
@@ -31,6 +29,10 @@ export default class CommunicationManager {
     this.fu = new FileUtil(auth);
     this.auth = auth;
     this.pm = new PermissionManager(auth)
+  }
+
+  async getDefaultPapersDirectory() {
+    return this.getBaseIRI(await this.getCurrentWebID()) + DEFAULTPAPERSDIRECTORY
   }
 
   async getCurrentWebID() {
@@ -158,96 +160,27 @@ export default class CommunicationManager {
     profileURI: string,
     papersDirectoryURI?: string | undefined
   ) {
-    let collection = await this.getResearchPaperCollectionFromFile(profileURI);
-    if (!papersDirectoryURI) {
-      papersDirectoryURI =
-        this.getBaseIRI(profileURI) + "papers/";
-    }
-    if (!collection) {
-      if (!papersDirectoryURI.endsWith("/"))
+    let collections = await this.getPaperCollections(profileURI);
+    if (!collections.length) {
+      // Make new collection
+      if (!papersDirectoryURI) {
+        papersDirectoryURI = await this.getDefaultPapersDirectory();
+      }
+      if (!papersDirectoryURI.endsWith("/")) {
         papersDirectoryURI = papersDirectoryURI + "/";
-      this.patchProfileWithPaperCollection(
-        profileURI,
-        papersDirectoryURI
-      );
-    }
-    collection = await this.getResearchPaperCollectionFromFile(
-      profileURI
-    );
-
-    // if (
-    //   collection &&
-    //   collection["viewid"] &&
-    //   !(await this.fu.fileExists(collection["viewid"]))
-    // ) {
-    //   return await this.addPaperCollectionFile(
-    //     collection["viewid"],
-    //     papersDirectoryURI
-    //   );
-    // }
-    return null;
-  }
-
-  async getResearchPaperCollectionFromFile(
-    fileId: string
-  ): Promise<{
-    collectionid: string;
-    viewid?: string | null;
-  } | null> {
-    let store = await this.getDataStoreFromFile(fileId);
-    if (!store) return null;
-    return await this.getResearchPaperCollectionFromStore(store);
-  }
-
-  async getResearchPaperCollectionFromStore(
-    store: N3.Store
-  ): Promise<{
-    collectionid: string;
-    viewid?: string | null;
-  } | null> {
-    const collectionIds: Array<string> = [];
-    // Extract the ids of collections containing RESEARCH PAPERS as their subjects
-    for (const collectionTriple of store.getQuads(
-      null,
-      RDF + "type",
-      HYDRA + "Collection",
-      null
-    )) {
-      if (
-        store.getQuads(
-          collectionTriple.subject.id,
-          DCTERMS + "subject",
-          RESEARCH_PAPER_CLASS,
-          null
-        ).length > 0
-      ) {
-        collectionIds.push(collectionTriple.subject.id);
       }
+      await this.fu.createDirectory(papersDirectoryURI);
+      await this.pm.createACL(papersDirectoryURI)  // Creates an ACL for just the owner
+      await this.patchProfileWithPaperCollection(await this.getCurrentWebID(), papersDirectoryURI)
     }
-    if (collectionIds.length === 0) return null;
-    for (let id of collectionIds) {
-      const quads = store.getQuads(
-        id,
-        HYDRA + "view",
-        null,
-        null
-      );
-      if (quads.length > 0) {
-        return {
-          collectionid: id,
-          viewid: quads[0].object.id,
-        };
-      }
-    }
-    return {
-      collectionid: collectionIds[0],
-    };
   }
 
-  async getResearchPapers(
+  // Scans the profile card for collections of research papers
+  async getPaperCollections(
     profileURI: string
-  ): Promise<Array<PaperMetadata>> {
-    // 1: Scanning the profile card for collections of research papers
+  ): Promise<Array<string>> {
+    // Important after initialising, because we edited the card (not via ldflex)
+    await data.clearCache(profileURI.split('#')[0]);
     const card = data[profileURI.split('#')[0]];
     let paperDirectories = [];
     if (!card) return [];
@@ -259,10 +192,22 @@ export default class CommunicationManager {
       }
     }
 
+    return paperDirectories;
+  }
+
+  // Given a profile card, finds all papers of profile
+  async getResearchPapers(
+    profileURI: string
+  ): Promise<Array<PaperMetadata>> {
+    // 1: Scanning the profile card for collections of research papers
+    const paperDirectories = await this.getPaperCollections(profileURI);
+
     // 2: Scanning each collection for Readable papers
     let papers: PaperMetadata[] = [];
     for (let dir of paperDirectories) {
       try {
+        // Important after adding file (not via ldflex)
+        await data.clearCache(dir);
         for await (let file of data[dir].subjects) {
           try {
             if (file.value && file.value.includes("_meta")) { // TODO: end with .meta?
@@ -315,96 +260,39 @@ export default class CommunicationManager {
     const profileURIhashtag = profileURI.split("#")[0] + "#";
     const paperCollectionURI =
       profileURIhashtag + PARERSCOLLECTIONNAME;
+    
     const contents =
-      "INSERT DATA {  \
-        <" +
-      paperCollectionURI +
-      "> <" +
-      RDF +
-      "type> <" +
-      HYDRA +
-      "Collection> ; \n \
-      <" +
-      DCTERMS +
-      'description> "Collection of research papers" ; \n \
-      <' +
-      DCTERMS +
-      "subject> <" +
-      RESEARCH_PAPER_CLASS +
-      "> ; \n \
-      <" +
-      HYDRA +
-      "view> <" +
-      papersDirectoryURI +
-      "> .";
+      "INSERT DATA { " +
+      MetadataFileGenerator.generateProfileCollectionMetadata(paperCollectionURI, papersDirectoryURI) + " }";
     let patch = this.fu.patchFile(profileURI, contents);
     return patch;
   }
 
-  async addPaperCollectionFile(
-    collectionURI: string,
-    papersDirectoryURI?: string
-  ) {
-    papersDirectoryURI =
-      (papersDirectoryURI || DEFAULTPAPERSDIRECTORY) +
-      PAPERSCOLLECTIONFILE;
-
-    const contents: string = await MetadataFileGenerator.generatePaperCollection(
-      collectionURI,
-      papersDirectoryURI
-    );
-    if (!(await this.fu.fileExists(papersDirectoryURI))) {
-      return await this.fu.postAndPatchFile(
-        papersDirectoryURI,
-        contents
-      );
-    }
-  }
-
   /**
-   * Add a paper to the solid pod of profileURI parameter.
-   * The papersdirectory indicates the path in the pod where the paper should be stored.
-   * This method will add the paper to that path, and add the metadata for the paper to the papers metadata file.
+   * Add a paper to the solid pod of `metadata.publisher`.
    * @param {File} file
-   * @param {string} profileURI
-   * @param {string} papersDirectoryURI
+   * @param {PaperMetadata} metadata
    */
   async addPaper(file: File, metadata: PaperMetadata) {
-    const store = await this.getDataStoreFromFile(
-      metadata.publisher
-    );
-    const collection = await this.getResearchPaperCollectionFromStore(
-      store
-    );
-    if (!collection)
+    // Adds to the first collection of the publisher
+    const collections = await this.getPaperCollections(metadata.publisher);
+    if (!collections.length)
       throw new Error(
         "User not logged in or could not access user profile"
       );
 
     // Upload the file to the solid pod.
-    const paperURI =
-      metadata.id ||
-      DEFAULTPAPERSDIRECTORY + PAPERSCOLLECTIONFILE;
-    const fileUploadResponse = await this.fu.uploadFile(
+    const paperName = metadata.id
+    const res = await this.fu.uploadFile(
       file,
-      paperURI
+      paperName
     );
-    if (fileUploadResponse.status === 201) {
+    if (res.status === 201) {
       // The resource has succesfully been created
-      const uploadURL = fileUploadResponse.url;
+      const uploadURL = res.url;
 
-      let metadataURI: string = this.getMetadataURI(paperURI);
+      let metadataURI: string = this.getMetadataURI(uploadURL);
       metadata.metadatalocation = metadataURI;
-      const metadataPatch = await MetadataFileGenerator.generatePaperEntry(
-        collection.collectionid,
-        uploadURL,
-        metadata
-      );
-      let payload = "INSERT DATA {" + metadataPatch + "}";
-      await this.fu.patchFile(
-        collection.viewid || collection.collectionid,
-        payload
-      );
 
       await this.createMetadataFile(
         uploadURL,
@@ -414,7 +302,7 @@ export default class CommunicationManager {
     } else {
       throw new Error("Paper not uploaded succesfully");
     }
-    return fileUploadResponse;
+    return res;
   }
 
   getMetadataURI(fileURI: string) {
@@ -434,7 +322,7 @@ export default class CommunicationManager {
       paperURI,
       metadata
     );
-    return (await this.fu.postAndPatchFile(metadataURI, content)).ok;
+    return (await this.fu.postFile(metadataURI, content, "text/turtle")).ok;
   }
 
   async addComment(

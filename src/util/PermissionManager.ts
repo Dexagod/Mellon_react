@@ -37,14 +37,13 @@ export class PermissionManager{
    * @param docURI The document URI on which the permissions apply
    * @param permissions Permissions, like created by `createPermission`
    */
-  async createACL(docURI: string, permissions: object[]) {
+  async createACL(docURI: string, permissions: object[] = []) {
     const webId = await this.checkSession();
     const ACL = new irc.AccessControlList(
       webId,
       docURI,
       docURI + '.acl'
     );
-    console.log(permissions)
     await ACL.createACL(permissions);
   }
 
@@ -54,7 +53,7 @@ export class PermissionManager{
    * @param docURI The document URI on which the permissions apply
    * @param permissions Permissions, like created by `createPermission`
    */
-  async reCreateACL(docURI: string, permissions: object[]) {
+  async reCreateACL(docURI: string, permissions: object[] = []) {
     const webId = await this.checkSession();
     const ACL = new irc.AccessControlList(
       webId,

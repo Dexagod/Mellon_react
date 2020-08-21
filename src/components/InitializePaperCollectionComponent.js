@@ -7,19 +7,15 @@ import DocumentsView from './DocumentsView';
 
 
 export default class InitializePaperCollectionComponent extends React.Component {
-  
+
   constructor(props){
     super(props)
     this.cm = props.cm || new CommunicationManager(solid)
   }
 
   async initializeCollection() {
-    const session = await solid.currentSession()
-    const webId = session.webId
-    if(!webId) return;
-
     await this.cm.initializeResearchPaperStorage(
-      webId
+      await this.cm.getCurrentWebID()
     );
     this.props.initializedCollection()
   }
@@ -31,18 +27,3 @@ export default class InitializePaperCollectionComponent extends React.Component 
     )
   }
 }
-
-
-
-
-
-    // let collection = await this.commsManager.getResearchPaperCollectionFromFile(
-    //   userWebId
-    // );
-
-    // if (!collection) {
-    //   console.error(
-    //     "The user has not yet initialized a collection to store research papers."
-    //   );
-    //   return;
-    // }

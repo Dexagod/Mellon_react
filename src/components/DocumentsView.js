@@ -1,5 +1,6 @@
 // Import React as usual
 import React from 'react';
+import FadeLoader from 'react-spinners/FadeLoader'
 
 // Import Chonky
 import 'chonky/style/main.css';
@@ -22,7 +23,8 @@ export default class DocumentsView extends React.Component {
         this.state = {
             searchId: "",
             files: [],
-            collection: false
+            collection: false,
+            loading: true
         };
 
         this.chonkyRef = React.createRef();
@@ -40,28 +42,29 @@ export default class DocumentsView extends React.Component {
     componentDidUpdate(prevProps) {
       if (prevProps.selectFile !== this.props.selectFile) {
         // Update files first because this probably get's called when new file uploaded
-        this.updateSearchId(() => this.selectFile(this.props.selectFile));
+        this.setState({ loading: true }, () => this.updateSearchId(() => this.selectFile(this.props.selectFile)));
       }
     }
 
     async asyncInit() {
-      const session = await solid.currentSession()
-      if(!session) return
-      this.webId = session.webId
-      if(! this.webId) return;
-      let collection = await this.cm.getResearchPaperCollectionFromFile(this.webId);
-      this.setState({searchId: this.webId, collection: !!collection})
-      this.asyncUpdate(this.state.searchId);
+      const webId = await this.cm.getCurrentWebID()
+      if(!webId) { this.setState({ loading: false }); return; }
+      // If there is one or more collections
+      const collection = (await this.cm.getPaperCollections(webId)).length;
+
+      this.setState({searchId: webId, collection: collection }, () => {
+        this.asyncUpdate(this.state.searchId)
+      });
     }
 
     async asyncUpdate(searchId, afterUpdateCallback = () => {}){
-      console.log("getting", this.state, this.webId)
-      if(!this.state.collection) return;
-      const webId = searchId || this.webId
+      console.log("getting", this.state, this.state.webId)
+      if(!this.state.collection) { this.setState({ loading: false }); return; }
+      const webId = searchId
       const fileData = new Map();
       let documents = await this.cm.getResearchPapers(webId);
       if(!documents || documents.length === 0) {
-        this.setState({files: []})
+        this.setState({ files: [], loading: false })
         return;
       }
       for (let document of documents) {
@@ -71,7 +74,7 @@ export default class DocumentsView extends React.Component {
       }
       console.log(documents)
       this.fileData = fileData;
-      this.setState({files: documents}, afterUpdateCallback);
+      this.setState({ files: documents, loading: false }, afterUpdateCallback);
     }
 
     selectFile(fileURI) {
@@ -112,15 +115,15 @@ export default class DocumentsView extends React.Component {
     }
 
     updateSearchId(afterUpdateCallback = () => {}){
-      this.asyncUpdate(this.state.searchId, afterUpdateCallback)
+      this.setState({ loading: true }, () => this.asyncUpdate(this.state.searchId, afterUpdateCallback));
     }
 
     initializedCollection() {
-      this.asyncInit()
+      this.setState({ loading: true }, () => this.asyncInit());
     }
 
     render() {
-      const {files} = this.state;
+      const { files, loading } = this.state;
 
       console.log("RENDERING FILES", files)
 
@@ -130,10 +133,14 @@ export default class DocumentsView extends React.Component {
 
       return (
         <div className="documentsviewcontainer disable-scrollbars">
-          <FileBrowser ref={this.chonkyRef}
-            files={files} view={FileView.SmallThumbs}initializedCollection
-            onSelectionChange={this.handleSelectionChange}
-            onFileOpen={this.onFileOpen} />
+          {loading ?
+            <div className="fileLoader" ><FadeLoader /></div>
+          :
+            <FileBrowser ref={this.chonkyRef}
+              files={files} view={FileView.SmallThumbs}initializedCollection
+              onSelectionChange={this.handleSelectionChange}
+              onFileOpen={this.onFileOpen} />
+          }
           <div className="refreshDivButton" onClick={() => {this.updateSearchId()}}> Go </div>
           <input className="searchLocation" value={this.state.searchId} onChange={this.changeSearchId} />
         </div>

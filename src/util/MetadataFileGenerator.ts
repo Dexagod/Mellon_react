@@ -9,12 +9,12 @@ const SIOC = "http://rdfs.org/sioc/ns#";
 const { namedNode, literal, quad } = DataFactory;
 
 export default class MetadataFileGenerator {
-  static async generatePaperCollection(
+  static async generateProfileCollectionMetadata(
     collectionId: string,
     partialCollectionViewId: string
   ): Promise<string> {
     const quadList = [
-      quad(namedNode(collectionId), namedNode(RDF + 'type'), namedNode(HYDRA + 'collection')),
+      quad(namedNode(collectionId), namedNode(RDF + 'type'), namedNode(HYDRA + 'Collection')),
       quad(namedNode(collectionId), namedNode(DCTERMS + 'description'), literal("Collection of research papers")),
       quad(namedNode(collectionId), namedNode(HYDRA + 'view'), namedNode(partialCollectionViewId))
     ]
