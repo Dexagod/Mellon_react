@@ -183,7 +183,11 @@ export class AccessController extends React.Component {
 		this.cm.pm.reCreateACL(this.cm.getMetadataURI(this.state.documentURI), commentPermissions);
 		// All readers of the paper should also be able to read the parent folder
 		let folderName = this.state.documentURI.split('/').slice(0, -1).join('/') + '/'
-		this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], readAgents)])
+		if (readAgents === null) {
+			this.cm.pm.reCreateACL(folderName, [createPermission([MODES.READ], null)])
+		} else {
+			this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], readAgents)])
+		}
 	}
 
 	render() {
