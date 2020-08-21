@@ -336,8 +336,7 @@ export default class CommunicationManager {
       HYDRA +
       "view> <" +
       papersDirectoryURI +
-      "> . \
-      }";
+      "> .";
     let patch = this.fu.patchFile(profileURI, contents);
     return patch;
   }
@@ -350,7 +349,7 @@ export default class CommunicationManager {
       (papersDirectoryURI || DEFAULTPAPERSDIRECTORY) +
       PAPERSCOLLECTIONFILE;
 
-    const contents: string = MetadataFileGenerator.generatePaperCollection(
+    const contents: string = await MetadataFileGenerator.generatePaperCollection(
       collectionURI,
       papersDirectoryURI
     );
@@ -396,7 +395,7 @@ export default class CommunicationManager {
 
       let metadataURI: string = this.getMetadataURI(paperURI);
       metadata.metadatalocation = metadataURI;
-      const metadataPatch = MetadataFileGenerator.generatePaperEntry(
+      const metadataPatch = await MetadataFileGenerator.generatePaperEntry(
         collection.collectionid,
         uploadURL,
         metadata
@@ -430,14 +429,11 @@ export default class CommunicationManager {
     metadataURI: string,
     metadata: PaperMetadata
   ) {
-    // const content = MetadataFileGenerator.initializeMetadataFile(metadataURI, paperURI, metadata)
-    const content = MetadataFileGenerator.initializeMetadataFile(
+    const content = await MetadataFileGenerator.initializeMetadataFile(
       metadataURI,
       paperURI,
       metadata
     );
-    // this.fu.postFile(metadataURI, "", "text/turtle")
-    // this.fu.patchFile(metadataURI, content)
     return (await this.fu.postAndPatchFile(metadataURI, content)).ok;
   }
 
@@ -456,7 +452,7 @@ export default class CommunicationManager {
       "comment"
     );
     const commentURI = directory + fileName + extension;
-    const comment = MetadataFileGenerator.createComment(
+    const comment = await MetadataFileGenerator.createComment(
       commentURI,
       commentMetadata.documentId,
       commentMetadata.publisherId,
@@ -541,7 +537,7 @@ export default class CommunicationManager {
         case "http://rdfs.org/sioc/ns#content":
           comment.content = quad.object.id || quad.object.value;
           break;
-        case "http://rdfs.org/sioc/ns#created_at":
+        case AS + "published":
           if (quad.object.id || quad.object.value) {
             comment.createdAt = new Date(
               (quad.object.id || quad.object.value)
@@ -624,7 +620,7 @@ export default class CommunicationManager {
 
     const objectCreatedAtQuad = await store.getQuads(
       objectId,
-      SIOC + "created_at",
+      AS + "published",
       null,
       null
     )[0];

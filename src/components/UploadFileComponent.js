@@ -104,7 +104,7 @@ export class UploadFileComponent extends React.Component
     }
 
     for (let inbox of inboxes) {
-      const notification = MetadataFileGenerator.createPaperPublishedNotification(
+      const notification = await MetadataFileGenerator.createPaperPublishedNotification(
         webId,
         paperURI,
         paperMetadata.title
