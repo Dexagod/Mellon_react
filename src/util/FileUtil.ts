@@ -46,9 +46,8 @@ export class FileUtil {
     return await this.fc.postFile(fileURL, content, contentType);
   }
 
-  async postAndPatchFile(fileURL: string, content: string){
-    const post = await this.postFile(fileURL, content, "text/turtle")
-    return post
+  async createDirectory(directoryURL: string) {
+    return await this.fc.createFolder(directoryURL);
   }
 
   // Post file from file

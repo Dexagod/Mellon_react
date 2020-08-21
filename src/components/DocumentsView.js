@@ -24,7 +24,7 @@ export default class DocumentsView extends React.Component {
             searchId: "",
             files: [],
             collection: false,
-            loading: false
+            loading: true
         };
 
         this.chonkyRef = React.createRef();
@@ -36,7 +36,7 @@ export default class DocumentsView extends React.Component {
     }
 
     componentDidMount(){
-      this.setState({ loading: true }, () => this.asyncInit());
+      this.asyncInit();
     }
 
     componentDidUpdate(prevProps) {
@@ -47,20 +47,20 @@ export default class DocumentsView extends React.Component {
     }
 
     async asyncInit() {
-      const session = await solid.currentSession()
-      if(!session) { this.setState({ loading: false }); return; }
-      this.webId = session.webId
-      if(! this.webId) { this.setState({ loading: false }); return; }
-      let collection = await this.cm.getResearchPaperCollectionFromFile(this.webId);
-      this.setState({searchId: this.webId, collection: !!collection }, () => {
+      const webId = await this.cm.getCurrentWebID()
+      if(!webId) { this.setState({ loading: false }); return; }
+      // If there is one or more collections
+      const collection = (await this.cm.getPaperCollections(webId)).length;
+
+      this.setState({searchId: webId, collection: collection }, () => {
         this.asyncUpdate(this.state.searchId)
       });
     }
 
     async asyncUpdate(searchId, afterUpdateCallback = () => {}){
-      console.log("getting", this.state, this.webId)
+      console.log("getting", this.state, this.state.webId)
       if(!this.state.collection) { this.setState({ loading: false }); return; }
-      const webId = searchId || this.webId
+      const webId = searchId
       const fileData = new Map();
       let documents = await this.cm.getResearchPapers(webId);
       if(!documents || documents.length === 0) {
@@ -119,7 +119,7 @@ export default class DocumentsView extends React.Component {
     }
 
     initializedCollection() {
-      this.setState({ loading: true }, this.asyncInit);
+      this.setState({ loading: true }, () => this.asyncInit());
     }
 
     render() {
