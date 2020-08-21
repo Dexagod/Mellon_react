@@ -3,7 +3,7 @@ import solid from 'solid-auth-client'
 
 import CommunicationManager from 'util/CommunicationManager';
 import AccessControlTable from './AccessControlTable'
-import { MODES } from '../util/PermissionManager'
+import { MODES, createPermission } from '../util/PermissionManager'
 
 import "./AccessController.css"
 
@@ -134,6 +134,7 @@ export class AccessController extends React.Component {
 	// TODO: check valid webId's, groups, weird permissions (only write, owner no control, ...)
 	submitValues() {
 		let permissions = [];
+		let readAgents = [];
 		// Comment is APPEND permission on metafile.
 		let commentPermissions = [];
 
@@ -166,10 +167,23 @@ export class AccessController extends React.Component {
 				if (access) { modes.push(mode); }
 			}
 			permissions = addPermission(permissions, row.agent, modes);
+			// All Readers
+			if (row.read) {
+				if (row.agent === null) {
+					readAgents = null;
+				} else if (readAgents !== null) {
+					readAgents.push(row.agent)
+				}
+			}
 		}
 
 		this.cm.pm.reCreateACL(this.state.documentURI, permissions);
+		// All readers of the paper should also be able to read the metafile
+		commentPermissions.push(createPermission([MODES.READ], readAgents))
 		this.cm.pm.reCreateACL(this.cm.getMetadataURI(this.state.documentURI), commentPermissions);
+		// All readers of the paper should also be able to read the parent folder
+		let folderName = this.state.documentURI.split('/').slice(0, -1).join('/') + '/'
+		this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], readAgents)])
 	}
 
 	render() {

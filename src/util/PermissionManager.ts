@@ -44,7 +44,6 @@ export class PermissionManager{
       docURI,
       docURI + '.acl'
     );
-    console.log(permissions)
     await ACL.createACL(permissions);
   }
 

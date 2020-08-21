@@ -113,6 +113,7 @@ export class UploadFileComponent extends React.Component
       console.log("inbox", inbox, "notified with result", result);
     }
 
+    // TODO: move to CommunicationManager?
     // Notified people can read the paper
     console.log("Setting READ for all selected contacts");
     this.cm.pm.createACL(paperURI,
@@ -121,6 +122,11 @@ export class UploadFileComponent extends React.Component
     this.cm.pm.createACL(this.cm.getMetadataURI(paperURI),
       contacts.length ? [createPermission([MODES.READ], contacts)] : []
     );
+    // All readers of the paper should also be able to read the parent folder
+    if (contacts.length) {
+      let folderName = paperURI.split('/').slice(0, -1).join('/') + '/'
+      this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], contacts)])
+    }
 
     // create notification
     // this.props.paperAdded && this.props.paperAdded(paperMetadata);
