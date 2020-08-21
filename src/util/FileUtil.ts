@@ -6,6 +6,15 @@ const irc = require('@inrupt/solid-react-components');
 const ORIGIN = "http://localhost:8080";
 const DEFAULT_ACCEPT = "application/ld+json;q=0.9,text/turtle;q=0.8";
 
+async function catchError(operation: any) {
+  return await operation()
+    .catch((err: any) => {
+      if (err.status === 403 && err.statusText === "Origin Unauthorized") {
+        alert(`Please give ${ORIGIN} full access to the solid pod.`)
+      }
+    })
+}
+
 export class FileUtil {
   fc: any;
   auth: any;
