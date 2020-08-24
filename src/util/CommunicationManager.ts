@@ -436,7 +436,7 @@ export default class CommunicationManager {
         case "http://rdfs.org/sioc/ns#content":
           comment.content = quad.object.id || quad.object.value;
           break;
-        case AS + "published":
+        case SIOC + "created_at":
           if (quad.object.id || quad.object.value) {
             comment.createdAt = new Date(
               (quad.object.id || quad.object.value)

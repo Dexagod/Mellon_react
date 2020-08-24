@@ -59,7 +59,7 @@ export default class CommentsSidebar extends React.Component {
   }
 
   shouldComponentUpdate(nextprops, nextstate) {
-    console.log("ceck component updates", this.state.commentDates, nextstate.commentDates)
+    console.log("check component updates", this.state.commentDates, nextstate.commentDates)
     if (this.state.canComment !== nextstate.canComment) {
       return true;
     }
