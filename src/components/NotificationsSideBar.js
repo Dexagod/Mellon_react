@@ -3,10 +3,10 @@ import solid from 'solid-auth-client'
 import CommunicationManager from '../util/CommunicationManager';
 import NotificationHandler from 'util/NotificationHandler';
 import AsyncListItemNotification from "./AsyncListItemNotification"
-
 import List from '@material-ui/core/List';
-import "./Sidebar.css"
 import { UploadFileComponent } from './UploadFileComponent';
+import "../styles/Sidebar.css"
+
 const REFRESHRATE = 20000
 
 export default class NotificationsSideBar extends React.Component {

@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import "./MainContent.css"
 import solid from 'solid-auth-client'
 import CommunicationManager from '../util/CommunicationManager';
 import NotificationHandler from 'util/NotificationHandler';
-
-import "./CommentAddComponent.css"
+import {DataFactory} from "n3"
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
+import "../styles/CommentAddComponent.css"
+import "../styles/MainContent.css"
 
-import {DataFactory} from "n3"
 
 
 export default class CommentAddComponent extends React.Component {

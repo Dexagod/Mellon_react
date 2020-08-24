@@ -6,7 +6,7 @@ import AsyncListItemComment from "./AsyncListItemComment"
 import List from '@material-ui/core/List';
 import CommentAddComponent from './CommentAddComponent';
 
-import "./Sidebar.css"
+import "../styles/Sidebar.css"
 const REFRESHRATE=20000
 
 

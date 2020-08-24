@@ -2,20 +2,21 @@ import { PaperMetadata } from './CommunicationManager';
 import { DataFactory, Writer, Quad } from "n3";
 
 import {AS, XSD, RDF, RDFS, DCTERMS } from '@inrupt/vocab-common-rdf'
-const RESEARCH_PAPER_CLASS = "http://example.com/ResearchPaper";
 const HYDRA = "http://www.w3.org/ns/hydra/core#";
 const SIOC = "http://rdfs.org/sioc/ns#";
 
 const { namedNode, literal, quad } = DataFactory;
 
 export default class MetadataFileGenerator {
+  static RESEARCH_PAPER_CLASS = "http://example.com/ResearchPaper";
   static async generateProfileCollectionMetadata(
     collectionId: string,
     partialCollectionViewId: string
   ): Promise<string> {
     const quadList = [
-      quad(namedNode(collectionId), namedNode(RDF + 'type'), namedNode(HYDRA + 'Collection')),
-      quad(namedNode(collectionId), namedNode(DCTERMS + 'description'), literal("Collection of research papers")),
+      quad(namedNode(collectionId), namedNode(RDF.type.value), namedNode(HYDRA + 'Collection')),
+      quad(namedNode(collectionId), namedNode(DCTERMS.description.value), literal("Collection of research papers")),
+      quad(namedNode(collectionId), namedNode(DCTERMS.subject.value), namedNode(this.RESEARCH_PAPER_CLASS)),
       quad(namedNode(collectionId), namedNode(HYDRA + 'view'), namedNode(partialCollectionViewId))
     ]
     return await this.quadListToTTL(quadList);
@@ -27,14 +28,14 @@ export default class MetadataFileGenerator {
   static async generatePaperEntry(collectionURI: string, paperURI: string, metadata: PaperMetadata): Promise<string> {
     let quadList = []
     quadList.push(quad(namedNode(collectionURI), namedNode(HYDRA + "member"), namedNode(paperURI)));
-    quadList.push(quad(namedNode(paperURI), namedNode(RDF + "type"), namedNode(RESEARCH_PAPER_CLASS)));
+    quadList.push(quad(namedNode(paperURI), namedNode(RDF.type.value), namedNode(this.RESEARCH_PAPER_CLASS)));
     if(metadata) {
       metadata.title && 
-        quadList.push(quad(namedNode(paperURI), namedNode(DCTERMS + 'title'), literal(metadata.title)))          
+        quadList.push(quad(namedNode(paperURI), namedNode(DCTERMS.title.value), literal(metadata.title)))          
       metadata.metadatalocation &&
-        quadList.push(quad(namedNode(paperURI), namedNode(RDFS + "seeAlso"), literal(metadata.metadatalocation)))        
+        quadList.push(quad(namedNode(paperURI), namedNode(RDFS.seeAlso.value), literal(metadata.metadatalocation)))        
       metadata.publisher &&
-        quadList.push(quad(namedNode(paperURI), namedNode(DCTERMS + "publisher"), literal(metadata.publisher)))     
+        quadList.push(quad(namedNode(paperURI), namedNode(DCTERMS.publisher.value), literal(metadata.publisher)))     
     }
     return this.quadListToTTL(quadList)
   }
@@ -47,9 +48,9 @@ export default class MetadataFileGenerator {
   ): Promise<{ metadata: string, payload: string, notification: string }> {
     const now = new Date();
     const metadataQuads = [
-      quad(namedNode(commentId), namedNode(RDF + 'type'), namedNode(SIOC + 'Post')),
+      quad(namedNode(commentId), namedNode(RDF.type.value), namedNode(SIOC + 'Post')),
       quad(namedNode(commentId), namedNode(SIOC + 'reply_of'), namedNode(articleId)),
-      quad(namedNode(commentId), namedNode(SIOC + 'created_at'), literal(now.toISOString(), namedNode(XSD + 'dateTime'))),
+      quad(namedNode(commentId), namedNode(SIOC + 'created_at'), literal(now.toISOString(), namedNode(XSD.dateTime.value))),
       quad(namedNode(commentId), namedNode(SIOC + 'has_creator'), namedNode(userWebId))
     ]
 
@@ -61,15 +62,15 @@ export default class MetadataFileGenerator {
   
     const comment = "Comment by ' + userWebId + ' over ' + articleId + '"
     const notificationQuads = [
-      quad(namedNode(''), namedNode(RDF + 'type'), namedNode(AS + 'Announce')),
-      quad(namedNode(''), namedNode(RDFS + 'comment'), literal(comment)),
-      quad(namedNode(''), namedNode(AS + 'published'), literal(now.toISOString(), namedNode(XSD + 'dateTime'))),
-      quad(namedNode(''), namedNode(AS + 'actor'), namedNode(userWebId)),
-      quad(namedNode(''), namedNode(AS + 'object'), namedNode(commentId)),
+      quad(namedNode(''), namedNode(RDF.type.value), namedNode(AS.Announce.value)),
+      quad(namedNode(''), namedNode(RDFS.comment.value), literal(comment)),
+      quad(namedNode(''), namedNode(AS.published.value), literal(now.toISOString(), namedNode(XSD.dateTime.value))),
+      quad(namedNode(''), namedNode(AS.actor.value), namedNode(userWebId)),
+      quad(namedNode(''), namedNode(AS.object.value), namedNode(commentId)),
 
-      quad(namedNode(commentId), namedNode(RDF + 'type'), namedNode(SIOC + 'Post')),
+      quad(namedNode(commentId), namedNode(RDF.type.value), namedNode(SIOC + 'Post')),
       quad(namedNode(commentId), namedNode(SIOC + 'reply_of'), namedNode(articleId)),
-      quad(namedNode(commentId), namedNode(SIOC + 'created_at'), literal(now.toISOString(), namedNode(XSD + 'dateTime'))),
+      quad(namedNode(commentId), namedNode(SIOC + 'created_at'), literal(now.toISOString(), namedNode(XSD.dateTime.value))),
       quad(namedNode(commentId), namedNode(SIOC + 'has_creator'), namedNode(userWebId)),
     ]
     return {
@@ -83,27 +84,27 @@ export default class MetadataFileGenerator {
   static async createPaperPublishedNotification(userWebId: string, paperId: string, paperTitle: string) : Promise<string> {
     const now = new Date()
     let notificationQuads = [
-      quad(namedNode(''), namedNode(RDF + 'type'), namedNode(AS + 'Announce')),
-      quad(namedNode(''), namedNode(RDFS + 'comment'), literal(userWebId + ' just published ' + paperTitle + ' at ' + paperId)),
-      quad(namedNode(''), namedNode(AS + 'published'), literal(now.toISOString(), namedNode(XSD + 'dateTime'))),
-      quad(namedNode(''), namedNode(AS + 'actor'), namedNode(userWebId)),
-      quad(namedNode(''), namedNode(AS + 'object'), namedNode(paperId)),
+      quad(namedNode(''), namedNode(RDF.type.value), namedNode(AS.Announce.value)),
+      quad(namedNode(''), namedNode(RDFS.comment.value), literal(userWebId + ' just published ' + paperTitle + ' at ' + paperId)),
+      quad(namedNode(''), namedNode(AS.published.value), literal(now.toISOString(), namedNode(XSD.dateTime.value))),
+      quad(namedNode(''), namedNode(AS.actor.value), namedNode(userWebId)),
+      quad(namedNode(''), namedNode(AS.object.value), namedNode(paperId)),
 
-      quad(namedNode(paperId), namedNode(RDF + 'type'), namedNode(RESEARCH_PAPER_CLASS)),
-      quad(namedNode(paperId), namedNode(DCTERMS + 'publisher'), namedNode(userWebId)),
+      quad(namedNode(paperId), namedNode(RDF.type.value), namedNode(this.RESEARCH_PAPER_CLASS)),
+      quad(namedNode(paperId), namedNode(DCTERMS.publisher.value), namedNode(userWebId)),
     ]
-    if (paperTitle) notificationQuads.push(quad(namedNode(paperId), namedNode(DCTERMS + 'title'), literal(paperTitle)))
+    if (paperTitle) notificationQuads.push(quad(namedNode(paperId), namedNode(DCTERMS.title.value), literal(paperTitle)))
     return await this.quadListToTTL(notificationQuads)
   }
 
   static async initializeMetadataFile(metadataURI: string, paperURI: string, metadata?: PaperMetadata) {
     const contentQuads = [
-      quad(namedNode(metadataURI), namedNode(RDFS + 'subject'), namedNode(paperURI)),
-      quad(namedNode(metadataURI), namedNode(RDFS + 'comment'), literal("This is the metadata file for " + paperURI)),
+      quad(namedNode(metadataURI), namedNode(RDF.subject.value), namedNode(paperURI)),
+      quad(namedNode(metadataURI), namedNode(RDFS.comment.value), literal("This is the metadata file for " + paperURI)),
     ]
     if (metadata) { 
-      if (metadata.title) contentQuads.push(quad(namedNode(metadataURI), namedNode(DCTERMS + 'title'), literal(metadata.title)))
-      if (metadata.publisher) contentQuads.push(quad(namedNode(metadataURI), namedNode(DCTERMS + 'publisher'), namedNode(metadata.publisher)))
+      if (metadata.title) contentQuads.push(quad(namedNode(metadataURI), namedNode(DCTERMS.title.value), literal(metadata.title)))
+      if (metadata.publisher) contentQuads.push(quad(namedNode(metadataURI), namedNode(DCTERMS.publisher.value), namedNode(metadata.publisher)))
     }
     return await this.quadListToTTL(contentQuads)
   }

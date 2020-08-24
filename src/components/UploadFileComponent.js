@@ -1,5 +1,4 @@
 import * as React from "react";
-import "./UploadFileComponent.css"
 import solid from 'solid-auth-client'
 import ContactSelector from "./ContactSelector"
 import CommunicationManager from '../util/CommunicationManager';

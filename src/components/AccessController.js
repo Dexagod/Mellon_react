@@ -5,7 +5,7 @@ import CommunicationManager from 'util/CommunicationManager';
 import AccessControlTable from './AccessControlTable'
 import { MODES, createPermission } from '../util/PermissionManager'
 
-import "./AccessController.css"
+import "../styles/AccessController.css"
 
 export class AccessController extends React.Component {
 

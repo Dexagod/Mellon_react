@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import "./MainContent.css"
 import solid from 'solid-auth-client'
 import CommunicationManager from '../util/CommunicationManager';
 import DocumentsView from './DocumentsView';
+import "../styles/MainContent.css"
 
 
 

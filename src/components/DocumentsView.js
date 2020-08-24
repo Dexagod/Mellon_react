@@ -10,7 +10,7 @@ import solid from 'solid-auth-client'
 import CommunicationManager from '../util/CommunicationManager';
 import InitializePaperCollectionComponent from "./InitializePaperCollectionComponent"
 
-import "./DocumentsView.css"
+import "../styles/DocumentsView.css"
 
 
 export default class DocumentsView extends React.Component {
@@ -23,7 +23,7 @@ export default class DocumentsView extends React.Component {
         this.state = {
             searchId: "",
             files: [],
-            collection: false,
+            hasCollection: false,
             loading: true
         };
 
@@ -50,16 +50,16 @@ export default class DocumentsView extends React.Component {
       const webId = await this.cm.getCurrentWebID()
       if(!webId) { this.setState({ loading: false }); return; }
       // If there is one or more collections
-      const collection = (await this.cm.getPaperCollections(webId)).length;
+      const hasCollection = (await this.cm.getPaperCollections(webId)).length > 0;
 
-      this.setState({searchId: webId, collection: collection }, () => {
+      this.setState({searchId: webId, hasCollection: hasCollection }, () => {
         this.asyncUpdate(this.state.searchId)
       });
     }
 
     async asyncUpdate(searchId, afterUpdateCallback = () => {}){
       console.log("getting", this.state, this.state.webId)
-      if(!this.state.collection) { this.setState({ loading: false }); return; }
+      if(!this.state.hasCollection) { this.setState({ loading: false }); return; }
       const webId = searchId
       const fileData = new Map();
       let documents = await this.cm.getResearchPapers(webId);
@@ -127,7 +127,7 @@ export default class DocumentsView extends React.Component {
 
       console.log("RENDERING FILES", files)
 
-      if(!this.state.collection) {
+      if (!this.state.hasCollection) {
         return( <InitializePaperCollectionComponent cm={this.cm} initializedCollection={this.initializedCollection}/> )
       }
 
@@ -137,7 +137,7 @@ export default class DocumentsView extends React.Component {
             <div className="fileLoader" ><FadeLoader /></div>
           :
             <FileBrowser ref={this.chonkyRef}
-              files={files} view={FileView.SmallThumbs}initializedCollection
+              files={files} view={FileView.SmallThumbs}
               onSelectionChange={this.handleSelectionChange}
               onFileOpen={this.onFileOpen} />
           }

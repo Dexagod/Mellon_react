@@ -10,7 +10,6 @@ const RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
 const RDFS = "http://www.w3.org/2000/01/rdf-schema#";
 const TREE = "https://w3id.org/tree#";
 const HYDRA = "http://www.w3.org/ns/hydra/core#";
-const RESEARCH_PAPER_CLASS = "http://example.com/ResearchPaper";
 const XSD = "http://www.w3.org/2001/XMLSchema#";
 const SIOC = "http://rdfs.org/sioc/ns#"
 const AS = "https://www.w3.org/ns/activitystreams#"
@@ -187,7 +186,7 @@ export default class CommunicationManager {
     for await (const subject of card.subjects) {
       // A paperdirectory is a Collection of ResearchPapers
       if (await subject["type"].value === HYDRA + "Collection"
-        && await subject[DCTERMS + "subject"].value === RESEARCH_PAPER_CLASS) {
+        && await subject[DCTERMS + "subject"].value === MetadataFileGenerator.RESEARCH_PAPER_CLASS) {
         paperDirectories.push(await subject[HYDRA + "view"].value);
       }
     }
@@ -209,11 +208,13 @@ export default class CommunicationManager {
         // Important after adding file (not via ldflex)
         await data.clearCache(dir);
         for await (let file of data[dir].subjects) {
+          // TODO (maybe not here) create metadata file for resource if no metada file is present for a resource (for example if uploaded from somewhere else?)
           try {
+            // Todo:: parse all files, not only metadata files, and search for references of papers, as the metadata can be stored in the document itself for some formats
             if (file.value && file.value.includes("_meta")) { // TODO: end with .meta?
               let paperURI = null
               try {
-                paperURI = await data[file][RDFS + "subject"];
+                paperURI = await data[file][RDF + "subject"];
               } catch {
                 console.warn(`Could not read metafile '${file.value}'.`);
                 continue
@@ -246,8 +247,6 @@ export default class CommunicationManager {
         console.warn(`Something went wrong while trying to read '${dir}'.`);
       }
     }
-
-    console.log(papers)
     return papers;
   }
 
@@ -262,8 +261,7 @@ export default class CommunicationManager {
       profileURIhashtag + PARERSCOLLECTIONNAME;
     
     const contents =
-      "INSERT DATA { " +
-      MetadataFileGenerator.generateProfileCollectionMetadata(paperCollectionURI, papersDirectoryURI) + " }";
+      "INSERT DATA { " + await MetadataFileGenerator.generateProfileCollectionMetadata(paperCollectionURI, papersDirectoryURI) + " }";
     let patch = this.fu.patchFile(profileURI, contents);
     return patch;
   }

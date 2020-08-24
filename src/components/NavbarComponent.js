@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Navbar from 'react-bootstrap/Navbar'
 import { AuthButton, LoggedIn, Value } from '@solid/react';
 import { withAuthorization, Name,  } from '@inrupt/solid-react-components';
-import "./NavbarComponent.css"
+import "../styles/NavbarComponent.css"
 
 
 

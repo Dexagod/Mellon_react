@@ -1,6 +1,5 @@
 import * as React from "react";
-import "./UploadFileComponent.css"
-import "./ContactSelector.css"
+import "../styles/ContactSelector.css"
 
 export default class ContactSelector extends React.Component{
   constructor(props){

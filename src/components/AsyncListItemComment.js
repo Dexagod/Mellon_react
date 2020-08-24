@@ -9,7 +9,7 @@ import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import CommunicationManager from 'util/CommunicationManager';
 
-import "./AsyncListItem.css"
+import "../styles/AsyncListItem.css"
 
 
 
