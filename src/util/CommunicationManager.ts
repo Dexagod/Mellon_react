@@ -1,7 +1,7 @@
 import MetadataFileGenerator from "./MetadataFileGenerator";
 import { FileUtil } from "./FileUtil";
 import * as N3 from "n3"
-import { PermissionManager } from "./PermissionManager";
+import { PermissionManager, createPermission, MODES } from "./PermissionManager";
 const { default: data } = require('@solid/query-ldflex');
 
 const FOAF = "http://xmlns.com/foaf/0.1/";
@@ -174,7 +174,7 @@ export default class CommunicationManager {
     }
   }
 
-  // Scans the profile card for collections of research papers
+  // Scans the profile card for collections (folders) of research papers
   async getPaperCollections(
     profileURI: string
   ): Promise<Array<string>> {
@@ -345,11 +345,21 @@ export default class CommunicationManager {
       commentMetadata.text
     );
 
-    await this.fu.postFile(
+    const res = await this.fu.postFile(
       commentURI,
       comment.payload,
       "text/turtle"
     );
+
+    if (!res.ok) {
+      console.log("Something went wrong while uploading comment!")
+      return "";
+    }
+
+    // Everyone can read the comment (if they have the filename)
+    this.pm.createACL(commentURI,
+      [createPermission([MODES.READ])]
+    )
 
     const metadataLocation =
       paperMetadata.metadatalocation ||

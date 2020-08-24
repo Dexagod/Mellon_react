@@ -56,7 +56,7 @@ export class FileUtil {
   }
 
   async createDirectory(directoryURL: string) {
-    return await this.fc.createFolder(directoryURL);
+    return await catchError(() => this.fc.createFolder(directoryURL));
   }
 
   // Post file from file
