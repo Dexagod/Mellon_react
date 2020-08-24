@@ -43,12 +43,9 @@ export class AccessController extends React.Component {
 		let permissions = [], commentPermissions = [];
 		try {
 			permissions = await this.cm.pm.getPermissions(documentURI);
-		} catch {}
-		try {
 			commentPermissions = await this.cm.pm.getPermissions(this.cm.getMetadataURI(documentURI));
-		} catch {}
-		// If both are not fetchable
-		if (!permissions.length) {
+		} catch {
+			// User has no Control
 			this.setState(state => {
 				return {
 					userHasControl: false,

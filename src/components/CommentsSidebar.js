@@ -19,6 +19,7 @@ export default class CommentsSidebar extends React.Component {
     this.state = {
       commentIds: [],
       commentDates: [],
+      canComment: false
     };
     this.update = this.update.bind(this)
     this.updateDate = this.updateDate.bind(this);
@@ -32,7 +33,15 @@ export default class CommentsSidebar extends React.Component {
     return ({ commentIds: [], commentDates: [] })
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    const documentMetadata = Object.values(this.props.selection)[0];
+    // Check if user can comment
+    const patch = await this.cm.fu.patchFile(
+      documentMetadata.metadatalocation || this.cm.getMetadataURI(documentMetadata.id),
+      ""
+    );
+    this.setState({ canComment: patch.status !== 403 });
+
     this.running = true
     this.update();
     this.timeout = setInterval(this.update, REFRESHRATE);
@@ -51,6 +60,9 @@ export default class CommentsSidebar extends React.Component {
 
   shouldComponentUpdate(nextprops, nextstate) {
     console.log("ceck component updates", this.state.commentDates, nextstate.commentDates)
+    if (this.state.canComment !== nextstate.canComment) {
+      return true;
+    }
     if(Object.keys(this.props.selection)[0] !== Object.keys(nextprops.selection)[0]){
       console.log("newProps")
       return true
@@ -124,9 +136,12 @@ export default class CommentsSidebar extends React.Component {
             {commentsList}
           </List>
         </div>
-        <div className="lowercontainer disable-scrollbars">
-          <CommentAddComponent className="commentAdd" selection={this.props.selection}/>
-        </div>
+        {this.state.canComment ?
+          (<div className="lowercontainer disable-scrollbars">
+            <CommentAddComponent className="commentAdd" selection={this.props.selection}/>
+          </div>)
+          : (null)
+        }
       </div>
     );
   }

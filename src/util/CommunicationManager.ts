@@ -207,19 +207,22 @@ export default class CommunicationManager {
       try {
         // Important after adding file (not via ldflex)
         await data.clearCache(dir);
-        for await (let file of data[dir].subjects) {
+        for await (let metaFile of data[dir].subjects) {
           // TODO (maybe not here) create metadata file for resource if no metada file is present for a resource (for example if uploaded from somewhere else?)
           try {
             // Todo:: parse all files, not only metadata files, and search for references of papers, as the metadata can be stored in the document itself for some formats
-            if (file.value && file.value.includes("_meta")) { // TODO: end with .meta?
-              let paperURI = null
+            if (metaFile.value && metaFile.value.includes("_meta")) { // TODO: end with .meta?
+              let metadataURI = metaFile.value
+              let paper: any = null
               try {
-                paperURI = await data[file][RDF + "subject"];
+                paper = await data[metaFile][RDF + "subject"];
+
               } catch {
-                console.warn(`Could not read metafile '${file.value}'.`);
+                console.warn(`Could not read metafile '${metadataURI}'.`);
                 continue
               }
-              let title = await paperURI[DCTERMS + "title"].value;
+              let paperURI = paper.value;
+              let title = await paper[DCTERMS + "title"].value;
 
               // To make sure the paper itself is there and readable
               await this.auth.fetch(paperURI, { method: 'HEAD' })
@@ -234,13 +237,13 @@ export default class CommunicationManager {
                 })
 
               papers.push({
-                id: paperURI.value,
+                id: paperURI,
                 title: title,
-                metadatalocation: file.value,
-                publisher: await paperURI[DCTERMS + "publisher"].value
+                metadatalocation: metadataURI,
+                publisher: await paper[DCTERMS + "publisher"].value
               });
             }
-          } catch {}
+          } catch { /* something went for this file */ }
         }
       } catch {
         // No read permission on this paper directory
@@ -259,7 +262,7 @@ export default class CommunicationManager {
     const profileURIhashtag = profileURI.split("#")[0] + "#";
     const paperCollectionURI =
       profileURIhashtag + PARERSCOLLECTIONNAME;
-    
+
     const contents =
       "INSERT DATA { " + await MetadataFileGenerator.generateProfileCollectionMetadata(paperCollectionURI, papersDirectoryURI) + " }";
     let patch = this.fu.patchFile(profileURI, contents);
