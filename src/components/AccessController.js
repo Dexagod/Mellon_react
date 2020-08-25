@@ -59,16 +59,18 @@ export class AccessController extends React.Component {
 
 		// Check if user has control
 		let userHasControl = false;
+		let userCanWrite = false;
 		let webID = await this.cm.getCurrentWebID();
 		for (let row of tableData) {
-			if (row.control && row.agent === webID) {
-				userHasControl = true;
-				break;
+			if (row.agent === webID || row.agent === null) {
+				if (row.control) { userHasControl = true; }
+				if (row.write) { userCanWrite = true; }
 			}
 		}
 		this.setState(state => {
 			return {
 				userHasControl,
+				userCanWrite,
 				documentURI, contacts,
 				permissions, commentPermissions,
 				tableData
@@ -76,6 +78,7 @@ export class AccessController extends React.Component {
 		});
 	}
 
+	/* A 'null' value means everybody */
   	createTableData(permissions, commentPermissions, contacts) {
 		let tableData = []
 		let agentIndexes = {}
@@ -132,6 +135,7 @@ export class AccessController extends React.Component {
 	submitValues() {
 		let permissions = [];
 		let readAgents = [];
+		let controlAgents = [];
 		// Comment is APPEND permission on metafile.
 		let commentPermissions = [];
 
@@ -172,19 +176,27 @@ export class AccessController extends React.Component {
 					readAgents.push(row.agent)
 				}
 			}
+			// All Controllers
+			if (row.control) {
+				if (row.agent === null) {
+					controlAgents = null;
+				} else if (controlAgents !== null) {
+					controlAgents.push(row.agent)
+				}
+			}
 		}
 
 		this.cm.pm.reCreateACL(this.state.documentURI, permissions);
 		// All readers of the paper should also be able to read the metafile
 		commentPermissions.push(createPermission([MODES.READ], readAgents))
+		commentPermissions.push(createPermission([MODES.CONTROL], controlAgents))
 		this.cm.pm.reCreateACL(this.cm.getMetadataURI(this.state.documentURI), commentPermissions);
 		// All readers of the paper should also be able to read the parent folder
 		let folderName = this.state.documentURI.split('/').slice(0, -1).join('/') + '/'
-		if (readAgents === null) {
-			this.cm.pm.reCreateACL(folderName, [createPermission([MODES.READ], null)])
-		} else {
-			this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], readAgents)])
-		}
+		this.cm.pm.reCreateACL(folderName, [
+			createPermission([MODES.READ], readAgents),
+			createPermission([MODES.CONTROL], controlAgents)
+		]);
 	}
 
 	deletePaper() {
@@ -197,7 +209,7 @@ export class AccessController extends React.Component {
 		return (
 			<>
 				{/* TODO: confirmation? */}
-				<button onClick={() => this.deletePaper()}>Delete this file</button>
+				{this.state.userCanWrite ? <button onClick={() => this.deletePaper()}>Delete this file</button> : null}
 				<p>Permissions for this file</p>
 				<AccessControlTable tableData={this.state.tableData}
 					submitValues={data => this.setState({ tableData: data }, this.submitValues)} />
