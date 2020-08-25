@@ -306,6 +306,12 @@ export default class CommunicationManager {
     return res;
   }
 
+  /* Only gets called when user has control permission, so does not have to be checked */
+  async deletePaper(paperMetadata: PaperMetadata) {
+    this.auth.fetch(paperMetadata.id, { method: 'DELETE' })
+    this.auth.fetch(paperMetadata.metadatalocation, { method: 'DELETE' })
+  }
+
   getMetadataURI(fileURI: string) {
     let metadataURI: any = fileURI.split(".");
     return metadataURI

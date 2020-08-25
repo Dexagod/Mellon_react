@@ -18,7 +18,8 @@ export default class APP extends React.Component {
       webId: "",
       selection: [],
       refreshFiles: 0,
-      sideBarVisible: false
+      sideBarVisible: false,
+      updateSelection: 0
     };
     this.cm = new CommunicationManager(solid)
     this.handleSelection = this.handleSelection.bind(this);
@@ -46,10 +47,12 @@ export default class APP extends React.Component {
   getSidebar(){
     if(Object.keys(this.state.selection).length === 0)
       return <NotificationsSideBar selection={this.state.selection} cm={this.cm}
-              fileUploaded={(fileURI) => this.setState({ selectFile: fileURI})}/> // After upload, select file
+              fileUploaded={(fileURI) => this.setState(old => ({ selectFile: fileURI, updateSelection: old.updateSelection + 1 }))}/> // After upload, select file
     return (
       <div>
-        <AccessController selection={this.state.selection} cm={this.cm} upload={false}/>
+        <h3>{Object.values(this.state.selection)[0].name}</h3>
+        <AccessController selection={this.state.selection} cm={this.cm}
+          fileRemoved={() => this.setState(old => ({ selectFile: null, updateSelection: old.updateSelection + 1 }))} />
         <CommentsSidebar selection={this.state.selection} cm={this.cm} />
       </div>)
   }
@@ -72,7 +75,8 @@ export default class APP extends React.Component {
           <NavbarComponent className="navbar" cm={this.cm}/>
           <div className="contentcontainer row">
             <div className="maincontentcontainer col">
-              <MainContent handleSelection={this.handleSelection} cm={this.cm} selectFile={this.state.selectFile} />
+              <MainContent handleSelection={this.handleSelection} cm={this.cm}
+                selectFile={this.state.selectFile} updateSelection={this.state.updateSelection} />
             </div>
             {this.state.sideBarVisible ? (
               <>

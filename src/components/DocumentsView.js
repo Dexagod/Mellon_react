@@ -40,9 +40,9 @@ export default class DocumentsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-      if (prevProps.selectFile !== this.props.selectFile) {
+      if (prevProps.updateSelection !== this.props.updateSelection) {
         // Update files first because this probably get's called when new file uploaded
-        this.setState({ loading: true }, () => this.updateSearchId(() => this.selectFile(this.props.selectFile)));
+        this.updateSearchId(() => this.selectFile(this.props.selectFile));
       }
     }
 
@@ -64,7 +64,7 @@ export default class DocumentsView extends React.Component {
       const fileData = new Map();
       let documents = await this.cm.getResearchPapers(webId);
       if(!documents || documents.length === 0) {
-        this.setState({ files: [], loading: false })
+        this.setState({ files: [], loading: false }, afterUpdateCallback);
         return;
       }
       for (let document of documents) {
@@ -78,6 +78,7 @@ export default class DocumentsView extends React.Component {
     }
 
     selectFile(fileURI) {
+      if (!(fileURI && fileURI.length)) { this.chonkyRef.current.setSelection() }
       let selection = {};
       for (let file of this.state.files) {
         if (file.id === fileURI) {

@@ -187,10 +187,17 @@ export class AccessController extends React.Component {
 		}
 	}
 
+	deletePaper() {
+		this.cm.deletePaper(Object.values(this.props.selection)[0]);
+		this.props.fileRemoved();
+	}
+
 	render() {
 		if (!this.state.userHasControl) { return null; }
 		return (
 			<>
+				{/* TODO: confirmation? */}
+				<button onClick={() => this.deletePaper()}>Delete this file</button>
 				<p>Permissions for this file</p>
 				<AccessControlTable tableData={this.state.tableData}
 					submitValues={data => this.setState({ tableData: data }, this.submitValues)} />
