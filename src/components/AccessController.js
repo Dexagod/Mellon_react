@@ -187,11 +187,11 @@ export class AccessController extends React.Component {
 		}
 
 		this.cm.pm.reCreateACL(this.state.documentURI, permissions);
-		// All readers of the paper should also be able to read the metafile
+		// All readers of the paper should also be able to read the metafile and parent folder
 		commentPermissions.push(createPermission([MODES.READ], readAgents))
-		commentPermissions.push(createPermission([MODES.CONTROL], controlAgents))
+		commentPermissions.push(createPermission([MODES.CONTROL, MODES.WRITE], controlAgents)) // Write permission to delete file
 		this.cm.pm.reCreateACL(this.cm.getMetadataURI(this.state.documentURI), commentPermissions);
-		// All readers of the paper should also be able to read the parent folder
+
 		let folderName = this.state.documentURI.split('/').slice(0, -1).join('/') + '/'
 		this.cm.pm.reCreateACL(folderName, [
 			createPermission([MODES.READ], readAgents),
