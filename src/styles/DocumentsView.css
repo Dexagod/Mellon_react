@@ -9,13 +9,12 @@
   padding: 5px;
   border-radius: 3px;
   position: absolute;
-  top: 7px;
-  left: 50px;
+  top: 9px;
+  left: 20px;
   background-color: white;
   padding-left: 15px;
   padding-right: 15px;
 }
-
 
 .searchLocation {
   border: 1px solid black;
@@ -23,12 +22,26 @@
   border-radius: 3px;
   position: absolute;
   top: 7px;
-  left: 120px;
+  left: 90px;
   width: 48%;
 }
 
 .chonky {
   height: 100%;
+  margin-top: 50px;
+}
+
+/* Hides the 'go up a folder'-button. This is currently the only button with class 'chonky-button-group'.
+  Will give problems if other buttons with that class would be added. */
+.chonky-button-group {
+  display: none;
+}
+
+/* When screen is (not) wide, make sure top of file viewer looks good */
+@media (min-width: 580px) {
+  .chonky {
+    margin-top: 10px;
+  }
 }
 
 .fileLoader {
