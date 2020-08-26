@@ -1,18 +1,17 @@
 // Import React as usual
 import React from 'react';
 import AutoComplete from '@material-ui/lab/Autocomplete';
-import CircularProgress from '@material-ui/core/CircularProgress'
+import { TextField, CircularProgress } from '@material-ui/core'
 
 // Import Chonky
 import 'chonky/style/main.css';
 import {FileBrowser, FileView} from 'chonky';
 
 import solid from 'solid-auth-client'
-import CommunicationManager from '../util/CommunicationManager';
+import CommunicationManager, { Contact } from '../util/CommunicationManager';
 import InitializePaperCollectionComponent from "./InitializePaperCollectionComponent"
 
 import "../styles/DocumentsView.css"
-import { TextField } from '@material-ui/core';
 
 
 export default class DocumentsView extends React.Component {
@@ -131,7 +130,6 @@ export default class DocumentsView extends React.Component {
       const { files, loading } = this.state;
 
       console.log("RENDERING FILES", files)
-      console.log(this.state)
 
       if (!this.state.hasCollection) {
         return( <InitializePaperCollectionComponent cm={this.cm} initializedCollection={this.initializedCollection}/> )
@@ -152,15 +150,15 @@ export default class DocumentsView extends React.Component {
             <AutoComplete className="searchLocation" autoFocus freeSolo
               onInputChange={this.changeSearchId}
               onChange={() => this.updateSearchId()}  // Update when selecting option
-              onClose={this.onOptionsClose}
-              defaultValue={this.props.me ? this.props.me : { name: "", id: "" }}
+              defaultValue={this.props.me ? this.props.me : new Contact(null, undefined, undefined)}
               options={(this.props.me ? [this.props.me] : []).concat(this.props.contacts)}
               renderOption={(option) => ContactListElement(option)}
               getOptionLabel={(option) => option.id ? option.id : option}
               filterOptions={(options, { inputValue }) => {
                 inputValue = inputValue.trim().toLowerCase();
                 return options.filter(({ name, id }) =>
-                  name.toLowerCase().includes(inputValue) || id.toLowerCase().includes(inputValue)
+                  (name !== undefined && name.toLowerCase().includes(inputValue)) ||
+                    (id !== undefined && id.toLowerCase().includes(inputValue))
                 );
               }}
               renderInput={(params) => <TextField {...params} />}

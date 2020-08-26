@@ -29,7 +29,6 @@ export default class APP extends React.Component {
 
   async componentDidMount() {
     const contactsUpdated = () => {
-      // TODO: this.forceRefresh() is better?
       this.setState(old => ({ contacts: [...old.contacts]}))
     }
     const fetchContacts = async () => {
@@ -81,8 +80,6 @@ export default class APP extends React.Component {
   }
 
   render(){
-    console.log("YEEEEEE RENDERRRR")
-    console.dir(this.state)
     if(!this.state.webId){
       return (
         <div className="App">

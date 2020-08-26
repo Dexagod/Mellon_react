@@ -581,7 +581,7 @@ export class Contact {
   constructor(cm: CommunicationManager, id: string, contactUpdated: any) {
     this.cm = cm;
     this.id = id;
-    this.contactUpdated = contactUpdated
+    this.contactUpdated = contactUpdated;
     this.name = undefined;  /* undefined if name not initialised or found */
     this.fetchName();
   }
