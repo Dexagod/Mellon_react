@@ -23,7 +23,8 @@ export default class MainContent extends React.Component {
 
   render () {
     const view = <DocumentsView handleSelection={this.handleSelection} cm={this.cm}
-      selectFile={this.props.selectFile} updateSelection={this.props.updateSelection} />
+      selectFile={this.props.selectFile} updateSelection={this.props.updateSelection}
+      me={this.props.me} contacts={this.props.contacts} />
     return (
       <div className="maincontent">
         {view}

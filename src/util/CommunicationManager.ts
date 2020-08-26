@@ -155,6 +155,16 @@ export default class CommunicationManager {
     }
   }
 
+  /* contacts is a list of object with an 'id' property */
+  async fetchName(id: string): Promise<string | undefined> {
+    try {
+      data.clearCache(id)
+      return (await data[id].name).value
+    } catch {
+      return undefined
+    }
+  }
+
   async initializeResearchPaperStorage(
     profileURI: string,
     papersDirectoryURI?: string | undefined
@@ -559,6 +569,30 @@ export default class CommunicationManager {
       },
     };
     return notification;
+  }
+}
+
+export class Contact {
+  cm: CommunicationManager
+  id: string
+  name: string | undefined
+  contactUpdated: any
+
+  constructor(cm: CommunicationManager, id: string, contactUpdated: any) {
+    this.cm = cm;
+    this.id = id;
+    this.contactUpdated = contactUpdated
+    this.name = undefined;  /* undefined if name not initialised or found */
+    this.fetchName();
+  }
+
+  async fetchName() {
+    if (this.id) {
+      this.name = await this.cm.fetchName(this.id);
+      if (this.name !== undefined) {
+        this.contactUpdated();
+      }
+    }
   }
 }
 

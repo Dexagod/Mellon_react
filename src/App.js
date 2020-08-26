@@ -5,9 +5,8 @@ import NavbarComponent from './components/NavbarComponent'
 import CommentsSidebar from './components/CommentsSidebar';
 import MainContent from './components/MainContent';
 import NotificationsSideBar from 'components/NotificationsSideBar';
-import CommunicationManager from 'util/CommunicationManager';
-import solid from 'solid-auth-client'
-import CommentAddComponent from 'components/CommentAddComponent';
+import CommunicationManager, { Contact } from 'util/CommunicationManager';
+import solid from 'solid-auth-client';
 import { AccessController } from 'components/AccessController';
 
 export default class APP extends React.Component {
@@ -19,20 +18,40 @@ export default class APP extends React.Component {
       selection: [],
       refreshFiles: 0,
       sideBarVisible: false,
-      updateSelection: 0
+      updateSelection: 0,
+      me: null,
+      contacts: []
     };
     this.cm = new CommunicationManager(solid)
     this.handleSelection = this.handleSelection.bind(this);
     this.toggleSideBar = this.toggleSideBar.bind(this);
   }
 
-  componentDidMount(){
+  async componentDidMount() {
+    const contactsUpdated = () => {
+      // TODO: this.forceRefresh() is better?
+      this.setState(old => ({ contacts: [...old.contacts]}))
+    }
+    const fetchContacts = async () => {
+      this.setState({
+        contacts: (await this.cm.getContacts(this.state.webId)).map(id => new Contact(this.cm, id, contactsUpdated))
+      })
+    }
     solid.trackSession(session => {
-      if (!session)
-        this.setState({webId: ""})
-      else
-        this.setState({webId: session.webId})
-    });
+      if (!session) {
+        this.setState({webId: "", myInfo: {}, contacts: []})
+      } else {
+        this.setState({webId: session.webId, me: new Contact(this.cm, session.webId, contactsUpdated) },
+          fetchContacts  // Fetch contacts after logged in
+        );
+      }
+    })
+  }
+
+  async fetchContacts() {
+    this.setState({
+      contacts: (await this.cm.getContacts(this.state.webId)).map(id => ({ id }))
+    }, this.fetch)
   }
 
   handleSelection(newSelection) {
@@ -62,6 +81,8 @@ export default class APP extends React.Component {
   }
 
   render(){
+    console.log("YEEEEEE RENDERRRR")
+    console.dir(this.state)
     if(!this.state.webId){
       return (
         <div className="App">
@@ -76,7 +97,8 @@ export default class APP extends React.Component {
           <div className="contentcontainer row">
             <div className="maincontentcontainer col">
               <MainContent handleSelection={this.handleSelection} cm={this.cm}
-                selectFile={this.state.selectFile} updateSelection={this.state.updateSelection} />
+                selectFile={this.state.selectFile} updateSelection={this.state.updateSelection}
+                me={this.state.me} contacts={this.state.contacts} />
             </div>
             {this.state.sideBarVisible ? (
               <>

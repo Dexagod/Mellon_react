@@ -1,6 +1,7 @@
 // Import React as usual
 import React from 'react';
-import FadeLoader from 'react-spinners/FadeLoader'
+import AutoComplete from '@material-ui/lab/Autocomplete';
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 // Import Chonky
 import 'chonky/style/main.css';
@@ -11,6 +12,7 @@ import CommunicationManager from '../util/CommunicationManager';
 import InitializePaperCollectionComponent from "./InitializePaperCollectionComponent"
 
 import "../styles/DocumentsView.css"
+import { TextField } from '@material-ui/core';
 
 
 export default class DocumentsView extends React.Component {
@@ -52,7 +54,10 @@ export default class DocumentsView extends React.Component {
       // If there is one or more collections
       const hasCollection = (await this.cm.getPaperCollections(webId)).length > 0;
 
-      this.setState({searchId: webId, hasCollection: hasCollection }, () => {
+      this.setState({
+        searchId: webId,
+        hasCollection: hasCollection
+      }, () => {
         this.asyncUpdate(this.state.searchId)
       });
     }
@@ -110,9 +115,8 @@ export default class DocumentsView extends React.Component {
       window.open(id, '_blank');
     }
 
-    changeSearchId(e){
-      console.log("updating search id", e.target.value)
-      this.setState({searchId: e.target.value})
+    changeSearchId(event, newInputValue){
+      this.setState({ searchId: newInputValue })
     }
 
     updateSearchId(afterUpdateCallback = () => {}){
@@ -127,6 +131,7 @@ export default class DocumentsView extends React.Component {
       const { files, loading } = this.state;
 
       console.log("RENDERING FILES", files)
+      console.log(this.state)
 
       if (!this.state.hasCollection) {
         return( <InitializePaperCollectionComponent cm={this.cm} initializedCollection={this.initializedCollection}/> )
@@ -135,16 +140,41 @@ export default class DocumentsView extends React.Component {
       return (
         <div className="documentsviewcontainer disable-scrollbars">
           {loading ?
-            <div className="fileLoader" ><FadeLoader /></div>
+            <div className="fileLoader" ><CircularProgress /></div>
           :
             <FileBrowser ref={this.chonkyRef}
               files={files} view={FileView.SmallThumbs}
               onSelectionChange={this.handleSelectionChange}
               onFileOpen={this.onFileOpen} />
           }
-          <div className="refreshDivButton" onClick={() => {this.updateSearchId()}}> Go </div>
-          <input className="searchLocation" value={this.state.searchId} onChange={this.changeSearchId} />
+          <form onSubmit={(event) => { event.preventDefault(); this.updateSearchId() }}>
+            <div className="refreshDivButton" onClick={() => this.updateSearchId()}> Go </div>
+            <AutoComplete className="searchLocation" autoFocus freeSolo
+              onInputChange={this.changeSearchId}
+              onChange={() => this.updateSearchId()}  // Update when selecting option
+              onClose={this.onOptionsClose}
+              defaultValue={this.props.me ? this.props.me : { name: "", id: "" }}
+              options={(this.props.me ? [this.props.me] : []).concat(this.props.contacts)}
+              renderOption={(option) => ContactListElement(option)}
+              getOptionLabel={(option) => option.id ? option.id : option}
+              filterOptions={(options, { inputValue }) => {
+                inputValue = inputValue.trim().toLowerCase();
+                return options.filter(({ name, id }) =>
+                  name.toLowerCase().includes(inputValue) || id.toLowerCase().includes(inputValue)
+                );
+              }}
+              renderInput={(params) => <TextField {...params} />}
+            />
+          </form>
         </div>
       )
     }
+}
+
+const ContactListElement = ({ name, id }) => {
+  return (<>
+      <h6>{name}</h6><br />
+      <p className="contactListWebID">{id}</p>
+      <hr />
+    </>)
 }
