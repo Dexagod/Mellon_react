@@ -133,7 +133,7 @@ export class UploadFileComponent extends React.Component
     // reset component
     this.setState(this.getNewState());
     // Notify that a file has been uploaded
-    this.props.fileUploaded(paperURI);
+    this.props.navigateToFile(paperURI);
   }
 
   render () {

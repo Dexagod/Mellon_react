@@ -8,7 +8,7 @@ import 'chonky/style/main.css';
 import {FileBrowser, FileView} from 'chonky';
 
 import solid from 'solid-auth-client'
-import CommunicationManager, { Contact } from '../util/CommunicationManager';
+import CommunicationManager from '../util/CommunicationManager';
 import InitializePaperCollectionComponent from "./InitializePaperCollectionComponent"
 
 import "../styles/DocumentsView.css"
@@ -31,7 +31,7 @@ export default class DocumentsView extends React.Component {
         this.chonkyRef = React.createRef();
         this.handleSelectionChange = this.handleSelectionChange.bind(this)
         this.changeSearchId = this.changeSearchId.bind(this)
-        this.updateSearchId = this.updateSearchId.bind(this)
+        this.search = this.search.bind(this)
         this.initializedCollection = this.initializedCollection.bind(this)
         this.onFileOpen = this.onFileOpen.bind(this)
     }
@@ -41,9 +41,17 @@ export default class DocumentsView extends React.Component {
     }
 
     componentDidUpdate(prevProps) {
-      if (prevProps.updateSelection !== this.props.updateSelection) {
-        // Update files first because this probably get's called when new file uploaded
-        this.updateSearchId(() => this.selectFile(this.props.selectFile));
+      // This code is in a function so it can be executed after the state changed below
+      const updateSelect = () => {
+        if (prevProps.updateSelection !== this.props.updateSelection && this.props.selectFile) {
+          // Update files first because this probably get's called when new file uploaded
+          this.search(() => this.selectFile(this.props.selectFile));
+        }
+      }
+      if (prevProps.updateSearch !== this.props.updateSearch && this.props.searchId) {
+        this.setState({ searchId: this.props.searchId }, updateSelect);
+      } else {
+        updateSelect();
       }
     }
 
@@ -118,7 +126,7 @@ export default class DocumentsView extends React.Component {
       this.setState({ searchId: newInputValue })
     }
 
-    updateSearchId(afterUpdateCallback = () => {}){
+    search(afterUpdateCallback = () => {}){
       this.setState({ loading: true }, () => this.asyncUpdate(this.state.searchId, afterUpdateCallback));
     }
 
@@ -145,12 +153,12 @@ export default class DocumentsView extends React.Component {
               onSelectionChange={this.handleSelectionChange}
               onFileOpen={this.onFileOpen} />
           }
-          <form onSubmit={(event) => { event.preventDefault(); this.updateSearchId() }}>
-            <div className="refreshDivButton" onClick={() => this.updateSearchId()}> Go </div>
+          <form onSubmit={(event) => { event.preventDefault(); this.search() }}>
+            <div className="refreshDivButton" onClick={() => this.search()}> Go </div>
             <AutoComplete className="searchLocation" autoFocus freeSolo
               onInputChange={this.changeSearchId}
-              onChange={() => this.updateSearchId()}  // Update when selecting option
-              defaultValue={this.props.me ? this.props.me : new Contact(null, undefined, undefined)}
+              onChange={() => this.search()}  // Update when selecting option
+              value={this.state.searchId}
               options={(this.props.me ? [this.props.me] : []).concat(this.props.contacts)}
               renderOption={(option) => ContactListElement(option)}
               getOptionLabel={(option) => option.id ? option.id : option}

@@ -23,6 +23,7 @@ export default class MainContent extends React.Component {
 
   render () {
     const view = <DocumentsView handleSelection={this.handleSelection} cm={this.cm}
+      searchId={this.props.searchId} updateSearch={this.props.updateSearch}
       selectFile={this.props.selectFile} updateSelection={this.props.updateSelection}
       me={this.props.me} contacts={this.props.contacts} />
     return (

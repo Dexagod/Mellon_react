@@ -18,12 +18,14 @@ export default class APP extends React.Component {
       selection: [],
       sideBarVisible: false,
       updateSelection: 0,
+      updateSearch: 0,
       me: null,
       contacts: []
     };
     this.cm = new CommunicationManager(solid)
     this.handleSelection = this.handleSelection.bind(this);
     this.toggleSideBar = this.toggleSideBar.bind(this);
+    this.navigateToFile = this.navigateToFile.bind(this);
   }
 
   async componentDidMount() {
@@ -63,16 +65,30 @@ export default class APP extends React.Component {
   getSidebar(){
     if(Object.keys(this.state.selection).length === 0)
       return <NotificationsSideBar selection={this.state.selection} cm={this.cm}
-              fileUploaded={(fileURI) => this.setState(old => ({ selectFile: fileURI, updateSelection: old.updateSelection + 1 }))} // After upload, select file
+              navigateToFile={this.navigateToFile}
               me={this.state.me} contacts={this.state.contacts} />
     return (
       <div>
         <h3>{Object.values(this.state.selection)[0].name}</h3>
         <AccessController selection={this.state.selection} cm={this.cm}
-          fileRemoved={() => this.setState(old => ({ selectFile: null, updateSelection: old.updateSelection + 1 }))}
+          fileRemoved={() => this.navigateToFile()}
           contacts={this.state.contacts} />
         <CommentsSidebar selection={this.state.selection} cm={this.cm} />
       </div>)
+  }
+
+  /* Select file fileURI, after navigating to profile profileURI if that is not null
+    If both null, de-selects selected item
+  */
+  navigateToFile(fileURI = null, profileURI = null) {
+    let newState = {};
+    if (profileURI !== null) {
+      newState.searchId = profileURI;
+      newState.updateSearch = this.state.updateSearch + 1;  // Re-render filebrowser with this prop
+    }
+    newState.selectFile = fileURI;
+    newState.updateSelection = this.state.updateSelection + 1;  // Re-render filebrowser with this prop
+    this.setState(newState, () => console.log(this.state));
   }
 
   toggleSideBar() {
@@ -94,6 +110,7 @@ export default class APP extends React.Component {
           <div className="contentcontainer row">
             <div className="maincontentcontainer col">
               <MainContent handleSelection={this.handleSelection} cm={this.cm}
+                searchId={this.state.searchId} updateSearch={this.state.updateSearch}
                 selectFile={this.state.selectFile} updateSelection={this.state.updateSelection}
                 me={this.state.me} contacts={this.state.contacts} />
             </div>

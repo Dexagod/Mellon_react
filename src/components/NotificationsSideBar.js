@@ -57,12 +57,11 @@ export default class NotificationsSideBar extends React.Component {
     );
     console.log("NOTIFICATIONS", notifications)
     this.setState({notifications: notifications})
-
   }
 
   render(){
     let notificationList = this.state.notifications.map(notification => {return(
-      <AsyncListItemNotification key={notification.id} metadata={notification} cm={this.cm}/>
+      <AsyncListItemNotification key={notification.id} metadata={notification} cm={this.cm} navigateToFile={this.props.navigateToFile} />
     )})
     return (
       <div className="sidebarcomponentcontainer">
@@ -75,7 +74,7 @@ export default class NotificationsSideBar extends React.Component {
           </div>
         </div>
         <div className="lowercontainer">
-          <UploadFileComponent className="fileAdd" fileUploaded={this.props.fileUploaded}
+          <UploadFileComponent className="fileAdd" navigateToFile={this.props.navigateToFile}
             me={this.props.me} contacts={this.props.contacts} />
         </div>
       </div>

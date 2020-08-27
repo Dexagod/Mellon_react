@@ -13,7 +13,7 @@ import "../styles/AsyncListItem.css"
 
 
 export default class AsyncListItemNotification extends React.Component {
-  
+
   constructor(props){
     super(props)
     this.running = true;
@@ -21,6 +21,8 @@ export default class AsyncListItemNotification extends React.Component {
     this.cm = props.cm || new CommunicationManager(solid);
     this.initComponent = this.initComponent.bind(this)
     this.state = this.getNewState(this.metadata.id)
+
+    this.onClick = this.onClick.bind(this)
   }
 
   getNewState(id){
@@ -70,17 +72,21 @@ export default class AsyncListItemNotification extends React.Component {
     this.running = false;
   }
 
+  onClick() {
+    this.props.navigateToFile(this.props.metadata.object.id, this.props.metadata.actor)
+  }
+
   render () {
     // const imagesrc = this.state.notification.type && this.state.notification.type=
     return (
       <div key={this.state.notification.id}>
-      
-        <ListItem className="flex-start listitem">
+
+        <ListItem className="flex-start listitem notification-clickable" onClick={this.onClick} >
           <ListItemAvatar>
             <Avatar alt={this.state.creatorName} src={require("../assets/comment.svg")}  />
           </ListItemAvatar>
             <ListItemText
-              primary={<a href={this.state.notification.object.id}>{this.state.notification.object.id}</a>}
+              primary={<a href={this.state.notification.object.id} target="_blank" rel="noopener noreferrer">{this.state.notification.object.id}</a>}
               secondary={
                 <React.Fragment>
                   <Typography
