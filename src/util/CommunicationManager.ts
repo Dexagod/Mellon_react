@@ -587,7 +587,7 @@ export class Contact {
   }
 
   async fetchName() {
-    if (this.id) {
+    if (this.id && this.id.length && this.cm && validURL(this.id)) {
       this.name = await this.cm.fetchName(this.id);
       if (this.name !== undefined) {
         this.contactUpdated();

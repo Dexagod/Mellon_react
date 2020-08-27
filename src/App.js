@@ -47,12 +47,6 @@ export default class APP extends React.Component {
     })
   }
 
-  async fetchContacts() {
-    this.setState({
-      contacts: (await this.cm.getContacts(this.state.webId)).map(id => ({ id }))
-    }, this.fetch)
-  }
-
   handleSelection(newSelection) {
     console.log("selected", "old", this.state.selection, "new", newSelection)
     this.setState({
@@ -65,12 +59,14 @@ export default class APP extends React.Component {
   getSidebar(){
     if(Object.keys(this.state.selection).length === 0)
       return <NotificationsSideBar selection={this.state.selection} cm={this.cm}
-              fileUploaded={(fileURI) => this.setState(old => ({ selectFile: fileURI, updateSelection: old.updateSelection + 1 }))}/> // After upload, select file
+              fileUploaded={(fileURI) => this.setState(old => ({ selectFile: fileURI, updateSelection: old.updateSelection + 1 }))} // After upload, select file
+              me={this.state.me} contacts={this.state.contacts} />
     return (
       <div>
         <h3>{Object.values(this.state.selection)[0].name}</h3>
         <AccessController selection={this.state.selection} cm={this.cm}
-          fileRemoved={() => this.setState(old => ({ selectFile: null, updateSelection: old.updateSelection + 1 }))} />
+          fileRemoved={() => this.setState(old => ({ selectFile: null, updateSelection: old.updateSelection + 1 }))}
+          contacts={this.state.contacts} />
         <CommentsSidebar selection={this.state.selection} cm={this.cm} />
       </div>)
   }

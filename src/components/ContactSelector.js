@@ -1,12 +1,15 @@
 import * as React from "react";
 import "../styles/ContactSelector.css"
 
+import { Contact } from '../util/CommunicationManager'
+
 export default class ContactSelector extends React.Component{
   constructor(props){
     super(props)
+    this.cm = props.cm;
     const contacts = props.contacts || [];
     this.addContact = this.addContact.bind(this)
-    this.updateConctact = this.updateConctact.bind(this)
+    this.updateContact = this.updateContact.bind(this)
     this.removeContact = this.removeContact.bind(this)
     this.submit = this.submit.bind(this)
 
@@ -14,7 +17,7 @@ export default class ContactSelector extends React.Component{
   }
 
   addContact(){
-    const newContact = ""
+    const newContact = new Contact(null, "", null);
     this.setState(state => {
       const list = [...state.contacts, newContact];
       return {
@@ -29,22 +32,20 @@ export default class ContactSelector extends React.Component{
     this.setState({contacts: newContacts})
   }
 
-  updateConctact(index, event) {
-    const newContact = event.target.value
+  updateContact(index, event) {
     let newContacts = [...this.state.contacts]
-    newContacts[index] = newContact
+    newContacts[index] = new Contact(this.cm, event.target.value, null); // Replace 'this.cm' by null to not fetch contact name
     this.setState({contacts: newContacts})
   }
 
   submit() {
     this.props.submit(this.state.contacts)
     this.setState({contacts: []})
-
   }
 
   render() {
     const contacts = this.state.contacts.map((contact, index) => {return(
-      <div className="contactcontainer" key={index} ><input className="contactinput" key={index} value={contact} onChange={(e) => {this.updateConctact(index, e)}}/><div className="divButton" onClick={() => {this.removeContact(index)}}>X</div></div>
+      <div className="contactcontainer" key={index} ><input className="contactinput" key={index} value={contact.id} onChange={(e) => {this.updateContact(index, e)}}/><div className="divButton" onClick={() => {this.removeContact(index)}}>X</div></div>
     )})
     return (
       <div className="contactsselector">

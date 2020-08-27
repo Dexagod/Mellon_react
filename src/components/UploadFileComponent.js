@@ -18,28 +18,29 @@ export class UploadFileComponent extends React.Component
     this.uploadFile = this.uploadFile.bind(this)
     this.uploadFile = this.uploadFile.bind(this)
     this.submit = this.submit.bind(this)
-    this.getContacts = this.getContacts.bind(this);
     this.getNewState = this.getNewState.bind(this);
     this.getStorageLocationForFile = this.getStorageLocationForFile.bind(this)
 
-    this.state = {file: null, contacts: [], uploading: false, storageLocation: ""}
+    this.state = {file: null, uploading: false, storageLocation: ""}
   }
 
-  componentDidMount(){
-    this.getContacts();
+  componentDidMount() {
+    const { me } = this.props;
+    if (me && me.id && me.id.length) {
+      this.setState({ storageLocation: this.cm.getBaseIRI(me.id) + "papers/"})
+    }
   }
 
-  async getContacts(){
-    const session = await solid.currentSession()
-    const webId = session.webId
-    if(!webId) return;
-    let contacts = await this.cm.getContacts(webId)
-    this.setState({contacts: contacts, storageLocation: this.cm.getBaseIRI(webId) + "papers/"})
+  componentDidUpdate(prevProps) {
+    const { me } = this.props;
+    if (me.id !== prevProps.me.id) {
+      this.setState({ storageLocation: this.cm.getBaseIRI(me.id) + "papers/"})
+    }
   }
 
-  // This only gets called after a paper was submitted. contacts and storagelocation should not be reset.
+  // This only gets called after a paper was submitted. storagelocation should not be reset.
   getNewState(){
-    return {file: null, contacts: this.state.contacts || [], uploading: false, storageLocation: this.state.storageLocation || ""}
+    return {file: null, uploading: false, storageLocation: this.state.storageLocation || ""}
   }
 
   handleChange(selectedFiles) {
@@ -64,12 +65,12 @@ export class UploadFileComponent extends React.Component
 
   async submit(contacts) {
     console.log("Submitting", this.state.file, contacts)
+    const webId = this.props.me.id;
     const file = this.state.file;
-    const session = await solid.currentSession()
-    const webId = session.webId
     const fileId = this.getStorageLocationForFile(this.state.file);
+    const contactIds = contacts.map(c => c.id);
     console.log("fileId", fileId)
-    if(!webId || !file || !fileId || !this.cm || !this.nh) {
+    if(!webId || !fileId || !this.cm || !this.nh) {
       console.error("fileupload component not initialized correctly")
       console.log(!webId, !file, !fileId, !this.cm, !this.nh)
       return;
@@ -90,7 +91,7 @@ export class UploadFileComponent extends React.Component
     console.log(paperURI, "added succesfully");
 
     let inboxes = [];
-    for (let contact of contacts) {
+    for (let contact of contactIds) {
       if (contact && validURL(contact)) {
         try {
           inboxes.push(
@@ -114,17 +115,17 @@ export class UploadFileComponent extends React.Component
 
     // TODO: move to CommunicationManager?
     // Notified people can read the paper
-    console.log("Setting READ for all selected contacts");
+    console.log("Setting READ for all selected contactIds");
     this.cm.pm.createACL(paperURI,
-      contacts.length ? [createPermission([MODES.READ], contacts)] : []
+      contactIds.length ? [createPermission([MODES.READ], contactIds)] : []
     );
     this.cm.pm.createACL(this.cm.getMetadataURI(paperURI),
-      contacts.length ? [createPermission([MODES.READ], contacts)] : []
+    contactIds.length ? [createPermission([MODES.READ], contactIds)] : []
     );
     // All readers of the paper should also be able to read the parent folder
-    if (contacts.length) {
+    if (contactIds.length) {
       let folderName = paperURI.split('/').slice(0, -1).join('/') + '/'
-      this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], contacts)])
+      this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], contactIds)])
     }
 
     // create notification
@@ -139,7 +140,7 @@ export class UploadFileComponent extends React.Component
     if (this.state.uploading) {
       return (
         <div>
-          <ContactSelector contacts={this.state.contacts} submit={this.submit}/>
+          <ContactSelector contacts={this.props.contacts} submit={this.submit}/>
         </div>
       )
     }

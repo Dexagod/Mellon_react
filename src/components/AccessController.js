@@ -7,6 +7,13 @@ import { MODES, createPermission } from '../util/PermissionManager'
 
 import "../styles/AccessController.css"
 
+const newTableRow = {
+	read: false,
+	write: false,
+	comment: false,
+	control: false
+}
+
 export class AccessController extends React.Component {
 
 	constructor(props) {
@@ -18,7 +25,6 @@ export class AccessController extends React.Component {
 		this.state = {
 			userHasControl: false,
 			documentURI,
-			contacts: [],
 			permissions: [],
 			commentPermissions: [],
 			tableData: []
@@ -39,23 +45,19 @@ export class AccessController extends React.Component {
 	}
 
 	async fetchData(documentURI) {
-		let contacts = await this.cm.getContacts();
 		let permissions = [], commentPermissions = [];
 		try {
 			permissions = await this.cm.pm.getPermissions(documentURI);
 			commentPermissions = await this.cm.pm.getPermissions(this.cm.getMetadataURI(documentURI));
 		} catch {
 			// User has no Control
-			this.setState(state => {
-				return {
-					userHasControl: false,
-					documentURI, contacts,
-					permissions, commentPermissions,
-					tableData: []
-				}
+			this.setState({
+				userHasControl: false,
+				permissions, commentPermissions,
+				tableData: []
 			});
 		}
-		let tableData = this.createTableData(permissions, commentPermissions, contacts);
+		let tableData = this.createTableData(permissions, commentPermissions);
 
 		// Check if user has control
 		let userHasControl = false;
@@ -71,7 +73,7 @@ export class AccessController extends React.Component {
 			return {
 				userHasControl,
 				userCanWrite,
-				documentURI, contacts,
+				documentURI,
 				permissions, commentPermissions,
 				tableData
 			}
@@ -79,15 +81,9 @@ export class AccessController extends React.Component {
 	}
 
 	/* A 'null' value means everybody */
-  	createTableData(permissions, commentPermissions, contacts) {
+  	createTableData(permissions, commentPermissions) {
 		let tableData = []
 		let agentIndexes = {}
-		let newRow = {
-			read: false,
-			write: false,
-			comment: false,
-			control: false
-		}
 		function processPermission(permission) {
 			if (permission.agents === null) {
 				permission.agents = [null];
@@ -99,7 +95,7 @@ export class AccessController extends React.Component {
 					agentIndexes[agent] = index
 					// Set because you can have a permission only once
 					tableData.push({
-						...newRow,
+						...newTableRow,
 						agent
 					});
 				}
@@ -116,16 +112,6 @@ export class AccessController extends React.Component {
 			if (permission.modes.includes(MODES.APPEND) || permission.modes.includes(MODES.WRITE)) {
 				permission.modes = [MODES.COMMENT];
 				processPermission(permission);
-			}
-		}
-		// Contacs that don't have permission should also be displayed
-		for (let contact of contacts) {
-			if (agentIndexes[contact] === undefined) {
-				agentIndexes[contact] = tableData.length;
-				tableData.push({
-					...newRow,
-					agent: contact
-				});
 			}
 		}
     	return tableData;
@@ -206,6 +192,21 @@ export class AccessController extends React.Component {
 
 	render() {
 		if (!this.state.userHasControl) { return null; }
+		const { tableData } = this.state;
+		// Contacs that don't have permission should also be displayed
+		let allAgents = new Set();
+		for (let row of tableData) {
+			allAgents.add(row.agent);
+		}
+		for (let contact of this.props.contacts) {
+			if (!allAgents.has(contact.id)) {
+				allAgents.add(contact.id);
+				tableData.push({
+					...newTableRow,
+					agent: contact.id
+				});
+			}
+		}
 		return (
 			<>
 				{/* TODO: confirmation? */}
