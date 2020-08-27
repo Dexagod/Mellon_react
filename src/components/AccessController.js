@@ -1,5 +1,7 @@
 import React from 'react'
 import solid from 'solid-auth-client'
+import { Snackbar } from '@material-ui/core'
+import { Alert } from '@material-ui/lab'
 
 import CommunicationManager from 'util/CommunicationManager';
 import AccessControlTable from './AccessControlTable'
@@ -21,13 +23,15 @@ export class AccessController extends React.Component {
 
 		this.cm = props.cm || new CommunicationManager(solid);
 		let documentURI = Object.keys(props.selection)[0];
+		this.succes = false;
 
 		this.state = {
 			userHasControl: false,
 			documentURI,
 			permissions: [],
 			commentPermissions: [],
-			tableData: []
+			tableData: [],
+			showAlert: false,
 		};
 	}
 
@@ -119,6 +123,16 @@ export class AccessController extends React.Component {
 
 	// TODO: check valid webId's, groups, weird permissions (only write, owner no control, ...)
 	submitValues() {
+		try {
+			this.changePermissions();
+			this.succes = true;
+		} catch {
+			this.succes = false;
+		}
+		this.setState({ showAlert: true });
+	}
+
+	changePermissions() {
 		let permissions = [];
 		let readAgents = [];
 		let controlAgents = [];
@@ -207,6 +221,11 @@ export class AccessController extends React.Component {
 				});
 			}
 		}
+
+		const closeAlert = (event, reason) => {
+			if (reason === 'clickaway') { return; }
+			this.setState({ showAlert: false }, () => this.succes = false);
+		};
 		return (
 			<>
 				{/* TODO: confirmation? */}
@@ -214,6 +233,11 @@ export class AccessController extends React.Component {
 				<p>Permissions for this file</p>
 				<AccessControlTable tableData={this.state.tableData}
 					submitValues={data => this.setState({ tableData: data }, this.submitValues)} />
+				<Snackbar open={this.state.showAlert} autoHideDuration={3000} onClose={closeAlert}>
+					<Alert variant="filled" onClose={closeAlert} severity={this.succes ? "success" : "warning"} >
+					{this.succes ? "Permissions changed succesfully!" : "Something went wrong"}
+					</Alert>
+				</Snackbar>
 			</>
 		);
 	}

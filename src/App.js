@@ -16,7 +16,6 @@ export default class APP extends React.Component {
     this.state = {
       webId: "",
       selection: [],
-      refreshFiles: 0,
       sideBarVisible: false,
       updateSelection: 0,
       me: null,
@@ -38,9 +37,14 @@ export default class APP extends React.Component {
     }
     solid.trackSession(session => {
       if (!session) {
-        this.setState({webId: "", myInfo: {}, contacts: []})
+        this.setState({webId: "", me: new Contact(null, "", null), contacts: []})
       } else {
-        this.setState({webId: session.webId, me: new Contact(this.cm, session.webId, contactsUpdated) },
+        this.setState(state => ({
+          webId: session.webId,
+          me: new Contact(this.cm, session.webId, contactsUpdated),
+          sideBarVisible: false,
+          selectFile: null, updateSelection: state.updateSelection + 1
+        }),
           fetchContacts  // Fetch contacts after logged in
         );
       }
