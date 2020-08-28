@@ -1,7 +1,8 @@
 // Import React as usual
 import React from 'react';
 import AutoComplete from '@material-ui/lab/Autocomplete';
-import { TextField, CircularProgress } from '@material-ui/core'
+import { TextField, CircularProgress, Snackbar } from '@material-ui/core'
+import { Alert } from '@material-ui/lab'
 
 // Import Chonky
 import 'chonky/style/main.css';
@@ -25,7 +26,8 @@ export default class DocumentsView extends React.Component {
             searchId: "",
             files: [],
             hasCollection: false,
-            loading: true
+            loading: true,
+            showAlert: false
         };
 
         this.chonkyRef = React.createRef();
@@ -42,14 +44,16 @@ export default class DocumentsView extends React.Component {
 
     componentDidUpdate(prevProps) {
       // This code is in a function so it can be executed after the state changed below
-      const updateSelect = () => {
-        if (prevProps.updateSelection !== this.props.updateSelection && this.props.selectFile) {
+      const updateSelect = (updateCollection = false) => {
+        if (prevProps.updateSelection !== this.props.updateSelection) {
           // Update files first because this probably get's called when new file uploaded
           this.search(() => this.selectFile(this.props.selectFile));
+        } else if (updateCollection) {
+          this.search();
         }
       }
       if (prevProps.updateSearch !== this.props.updateSearch && this.props.searchId) {
-        this.setState({ searchId: this.props.searchId }, updateSelect);
+        this.setState({ searchId: this.props.searchId }, updateSelect(true));
       } else {
         updateSelect();
       }
@@ -90,7 +94,7 @@ export default class DocumentsView extends React.Component {
     }
 
     selectFile(fileURI) {
-      if (!(fileURI && fileURI.length)) { this.chonkyRef.current.setSelection() }
+      if (!(fileURI && fileURI.length)) { this.chonkyRef.current.setSelection(); return; }
       let selection = {};
       for (let file of this.state.files) {
         if (file.id === fileURI) {
@@ -99,6 +103,8 @@ export default class DocumentsView extends React.Component {
           return;
         }
       }
+      // The file was not found
+      this.setState({ showAlert: true });
     }
 
     handleSelectionChange = (selection) => {
@@ -143,7 +149,12 @@ export default class DocumentsView extends React.Component {
         return( <InitializePaperCollectionComponent cm={this.cm} initializedCollection={this.initializedCollection}/> )
       }
 
-      return (
+      const closeAlert = (event, reason) => {
+        if (reason === 'clickaway') { return; }
+        this.setState({ showAlert: false });
+      };
+
+      return (<>
         <div className="documentsviewcontainer disable-scrollbars">
           {loading ?
             <div className="fileLoader" ><CircularProgress /></div>
@@ -173,7 +184,12 @@ export default class DocumentsView extends React.Component {
             />
           </form>
         </div>
-      )
+        <Snackbar open={this.state.showAlert} autoHideDuration={3000} onClose={closeAlert}>
+					<Alert variant="filled" onClose={closeAlert} severity="warning" >
+					{`This file could not be found`}
+					</Alert>
+				</Snackbar>
+      </>)
     }
 }
 

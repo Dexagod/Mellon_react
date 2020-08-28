@@ -73,7 +73,14 @@ export default class AsyncListItemNotification extends React.Component {
   }
 
   onClick() {
-    this.props.navigateToFile(this.props.metadata.object.id, this.props.metadata.actor)
+    console.dir(this.props)
+    console.dir(this.state)
+    let { object } = this.state.notification;
+    if (object.replyOf) {
+      this.props.navigateToFile(object.replyOf, this.props.metadata.hasCreator);
+    } else {
+      this.props.navigateToFile(object.id, this.props.metadata.actor);
+    }
   }
 
   render () {

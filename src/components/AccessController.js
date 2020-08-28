@@ -192,11 +192,20 @@ export class AccessController extends React.Component {
 		commentPermissions.push(createPermission([MODES.CONTROL, MODES.WRITE], controlAgents)) // Write permission to delete file
 		this.cm.pm.reCreateACL(this.cm.getMetadataURI(this.state.documentURI), commentPermissions);
 
+		// 'addToACL' seems not to handle 'null' for every agent, so use reCreate in that case
 		let folderName = this.state.documentURI.split('/').slice(0, -1).join('/') + '/'
-		this.cm.pm.reCreateACL(folderName, [
-			createPermission([MODES.READ], readAgents),
-			createPermission([MODES.CONTROL], controlAgents)
-		]);
+		if (readAgents === null) {
+			this.cm.pm.reCreateACL(folderName, [createPermission([MODES.READ], readAgents)]);
+			this.cm.pm.addToACL(folderName, [createPermission([MODES.CONTROL], controlAgents)]);
+		} else if (controlAgents === null) {
+			this.cm.pm.reCreateACL(folderName, [createPermission([MODES.CONTROL], controlAgents)]);
+			this.cm.pm.addToACL(folderName, [createPermission([MODES.READ], readAgents)]);
+		} else {
+			this.cm.pm.addToACL(folderName, [
+				createPermission([MODES.READ], readAgents),
+				createPermission([MODES.CONTROL], controlAgents)
+			]);
+		}
 	}
 
 	deletePaper() {

@@ -131,7 +131,7 @@ export default class CommentsSidebar extends React.Component {
     return (
       <div className="sidebarcomponentcontainer">
         <div className="uppercontainer">
-          <p>Comments</p>
+          {commentsList.length ? <p>Comments</p> : null}
           <List className="disable-scrollbars">
             {commentsList}
           </List>

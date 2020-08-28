@@ -225,6 +225,7 @@ export default class CommunicationManager {
               let metadataURI = metaFile.value
               let paper: any = null
               try {
+                data.clearCache(metaFile)
                 paper = await data[metaFile][RDF + "subject"];
 
               } catch {
