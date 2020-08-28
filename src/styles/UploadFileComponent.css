@@ -1,0 +1,7 @@
+#input-upload-file {
+  display: none;  /* Material-UI button displays instead */
+}
+
+.storage-location {
+  width: 95%;
+}

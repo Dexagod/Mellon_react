@@ -4,22 +4,12 @@
 }
 
 .refreshDivButton {
-  cursor: pointer;
-  border: 1px solid black;
-  padding: 5px;
-  border-radius: 3px;
   position: absolute;
-  top: 9px;
-  left: 20px;
-  background-color: white;
-  padding-left: 15px;
-  padding-right: 15px;
+  top: 15px;
+  left: 15px;
 }
 
 .searchLocation {
-  border: 1px solid black;
-  padding: 5px;
-  border-radius: 3px;
   position: absolute;
   top: 7px;
   left: 90px;
@@ -28,7 +18,7 @@
 
 .chonky {
   height: 100%;
-  margin-top: 50px;
+  margin-top: 80px;
 }
 
 /* Hides the 'go up a folder'-button. This is currently the only button with class 'chonky-button-group'.
@@ -40,7 +30,7 @@
 /* When screen is (not) wide, make sure top of file viewer looks good */
 @media (min-width: 580px) {
   .chonky {
-    margin-top: 10px;
+    margin-top: 20px;
   }
 }
 

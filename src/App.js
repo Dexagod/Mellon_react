@@ -8,6 +8,9 @@ import NotificationsSideBar from 'components/NotificationsSideBar';
 import CommunicationManager, { Contact } from 'util/CommunicationManager';
 import solid from 'solid-auth-client';
 import { AccessController } from 'components/AccessController';
+import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
+import ChevronRightIcon from '@material-ui/icons/ChevronRight';
+import { Button, Paper } from '@material-ui/core';
 
 export default class APP extends React.Component {
 
@@ -108,21 +111,19 @@ export default class APP extends React.Component {
       <div className="App">
           <NavbarComponent className="navbar" cm={this.cm}/>
           <div className="contentcontainer row">
-            <div className="maincontentcontainer col">
+            <Paper variant="outlined" className="maincontentcontainer col">
               <MainContent handleSelection={this.handleSelection} cm={this.cm}
                 searchId={this.state.searchId} updateSearch={this.state.updateSearch}
                 selectFile={this.state.selectFile} updateSelection={this.state.updateSelection}
                 me={this.state.me} contacts={this.state.contacts} />
-            </div>
+            </Paper>
             {this.state.sideBarVisible ? (
               <>
-                <div className="sidebarcontainer col-md-4">
-                  { this.getSidebar() }
-                </div>
-                <div className="sidebarexpand" onClick={this.toggleSideBar}>&gt;</div>
+                { this.getSidebar() }
+                <div className="button-sidebarexpand"><Button variant="contained" color="primary" onClick={this.toggleSideBar} ><ChevronRightIcon/></Button></div>
               </>
             ) : (
-              <div className="sidebarexpand" onClick={this.toggleSideBar}>&lt;</div>
+              <div className="button-sidebarexpand"><Button variant="contained" color="primary" onClick={this.toggleSideBar} ><ChevronLeftIcon/></Button></div>
             )}
           </div>
       </div>

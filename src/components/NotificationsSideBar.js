@@ -6,6 +6,7 @@ import AsyncListItemNotification from "./AsyncListItemNotification"
 import List from '@material-ui/core/List';
 import { UploadFileComponent } from './UploadFileComponent';
 import "../styles/Sidebar.css"
+import { Paper, Divider } from '@material-ui/core';
 
 const REFRESHRATE = 20000
 
@@ -64,7 +65,7 @@ export default class NotificationsSideBar extends React.Component {
       <AsyncListItemNotification key={notification.id} metadata={notification} cm={this.cm} navigateToFile={this.props.navigateToFile} />
     )})
     return (
-      <div className="sidebarcomponentcontainer">
+      <Paper variant="elevation" elevation={10} className="sidebarcomponentcontainer col-md-4">
         <div className="uppercontainer">
         <p>Notifications</p>
           <div className="sidebarList disable-scrollbars">
@@ -73,11 +74,12 @@ export default class NotificationsSideBar extends React.Component {
             </List>
           </div>
         </div>
+        <Divider />
         <div className="lowercontainer">
           <UploadFileComponent className="fileAdd" navigateToFile={this.props.navigateToFile}
             me={this.props.me} contacts={this.props.contacts} />
         </div>
-      </div>
+      </Paper>
     );
   }
 }

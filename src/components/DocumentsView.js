@@ -1,8 +1,9 @@
 // Import React as usual
 import React from 'react';
 import AutoComplete from '@material-ui/lab/Autocomplete';
-import { TextField, CircularProgress, Snackbar } from '@material-ui/core'
+import { TextField, CircularProgress, Snackbar, Button } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
+import SearchIcon from '@material-ui/icons/Search';
 
 // Import Chonky
 import 'chonky/style/main.css';
@@ -165,7 +166,7 @@ export default class DocumentsView extends React.Component {
               onFileOpen={this.onFileOpen} />
           }
           <form onSubmit={(event) => { event.preventDefault(); this.search() }}>
-            <div className="refreshDivButton" onClick={() => this.search()}> Go </div>
+            <div className="refreshDivButton"><Button color="primary" variant="outlined" onClick={() => this.search()}><SearchIcon /></Button></div>
             <AutoComplete className="searchLocation" autoFocus freeSolo
               onInputChange={this.changeSearchId}
               onChange={() => this.search()}  // Update when selecting option
@@ -180,7 +181,7 @@ export default class DocumentsView extends React.Component {
                     (id !== undefined && id.toLowerCase().includes(inputValue))
                 );
               }}
-              renderInput={(params) => <TextField {...params} />}
+              renderInput={(params) => <TextField variant="outlined" {...params} />}
             />
           </form>
         </div>

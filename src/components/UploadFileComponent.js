@@ -5,6 +5,9 @@ import CommunicationManager from '../util/CommunicationManager';
 import NotificationHandler from "../util/NotificationHandler";
 import MetadataFileGenerator from "../util/MetadataFileGenerator"
 import { MODES, createPermission } from '../util/PermissionManager'
+import { Button, TextField } from "@material-ui/core";
+
+import '../styles/UploadFileComponent.css'
 
 export class UploadFileComponent extends React.Component
 {
@@ -44,6 +47,7 @@ export class UploadFileComponent extends React.Component
   }
 
   handleChange(selectedFiles) {
+    console.log(selectedFiles[0])
     this.setState({file: selectedFiles[0]})
   }
 
@@ -146,10 +150,17 @@ export class UploadFileComponent extends React.Component
     }
     return (
       <div>
-        <input type="file" onChange={ (e) => this.handleChange(e.target.files) } />
-        <p>storage location</p>
-        <input value={this.state.storageLocation} onChange={ (e) => this.handleStorageLocation(e.target.value) } />
-        <button onClick={() => {this.uploadFile()}}>Upload</button>
+        <form onSubmit={() => this.uploadFile()} >
+          <input type="file" id="input-upload-file" onChange={ (e) => this.handleChange(e.target.files) } />
+          <label htmlFor="input-upload-file">
+            <Button size="small" variant="outlined" color="primary" component="span">
+            Choose file
+            </Button>
+          </label>
+          <span>{this.state.file ? ` Selected: ${this.state.file.name}` : " No file selected"}</span>
+          <TextField className="storage-location" label="Storage location" value={this.state.storageLocation} onChange={ (e) => this.handleStorageLocation(e.target.value) } />
+          <Button variant="contained" color="primary" onClick={() => this.uploadFile()}>Upload</Button>
+        </form>
       </div>
     )
   }
