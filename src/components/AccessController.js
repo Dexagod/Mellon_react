@@ -1,7 +1,8 @@
 import React from 'react'
 import solid from 'solid-auth-client'
-import { Snackbar } from '@material-ui/core'
+import { Snackbar, Button } from '@material-ui/core'
 import { Alert } from '@material-ui/lab'
+import DeleteIcon from '@material-ui/icons/Delete'
 
 import CommunicationManager from 'util/CommunicationManager';
 import AccessControlTable from './AccessControlTable'
@@ -86,8 +87,8 @@ export class AccessController extends React.Component {
 
 	/* A 'null' value means everybody */
   	createTableData(permissions, commentPermissions) {
-		let tableData = []
-		let agentIndexes = {}
+		let tableData = [{ ...newTableRow, agent: null}];
+		let agentIndexes = { null: 0 }; // First is for null a.k.a. 'everybody'
 		function processPermission(permission) {
 			if (permission.agents === null) {
 				permission.agents = [null];
@@ -236,9 +237,9 @@ export class AccessController extends React.Component {
 			this.setState({ showAlert: false }, () => this.succes = false);
 		};
 		return (
-			<>
+			<div className="accesscontroller">
 				{/* TODO: confirmation? */}
-				{this.state.userCanWrite ? <button onClick={() => this.deletePaper()}>Delete this file</button> : null}
+				{this.state.userCanWrite ? <Button className="button-delete-file" title="Delete this file" variant="outlined" size="small" onClick={() => this.deletePaper()}><DeleteIcon /></Button> : null}
 				<p>Permissions for this file</p>
 				<AccessControlTable tableData={this.state.tableData}
 					submitValues={data => this.setState({ tableData: data }, this.submitValues)} />
@@ -247,7 +248,7 @@ export class AccessController extends React.Component {
 					{this.succes ? "Permissions changed succesfully!" : "Something went wrong"}
 					</Alert>
 				</Snackbar>
-			</>
+			</div>
 		);
 	}
 }

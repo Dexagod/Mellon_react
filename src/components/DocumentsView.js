@@ -165,11 +165,11 @@ export default class DocumentsView extends React.Component {
               onSelectionChange={this.handleSelectionChange}
               onFileOpen={this.onFileOpen} />
           }
-          <form onSubmit={(event) => { event.preventDefault(); this.search() }}>
+          <form onSubmit={(event) => { event.preventDefault(); this.search(() => this.chonkyRef.current.setSelection([])) }}>
             <div className="refreshDivButton"><Button color="primary" variant="outlined" onClick={() => this.search()}><SearchIcon /></Button></div>
             <AutoComplete className="searchLocation" autoFocus freeSolo
               onInputChange={this.changeSearchId}
-              onChange={() => this.search()}  // Update when selecting option
+              onChange={() => this.search(() => this.chonkyRef.current.setSelection([]))}  // Update when selecting option
               value={this.state.searchId}
               options={(this.props.me ? [this.props.me] : []).concat(this.props.contacts)}
               renderOption={(option) => ContactListElement(option)}

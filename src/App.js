@@ -10,7 +10,7 @@ import solid from 'solid-auth-client';
 import { AccessController } from 'components/AccessController';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import { Button, Paper } from '@material-ui/core';
+import { Button, Paper, Divider } from '@material-ui/core';
 
 export default class APP extends React.Component {
 
@@ -71,13 +71,14 @@ export default class APP extends React.Component {
               navigateToFile={this.navigateToFile}
               me={this.state.me} contacts={this.state.contacts} />
     return (
-      <div>
+      <Paper variant="elevation" elevation={10} className="sidebarcomponentcontainer col-md-5">
         <h3>{Object.values(this.state.selection)[0].name}</h3>
         <AccessController selection={this.state.selection} cm={this.cm}
           fileRemoved={() => this.navigateToFile()}
           contacts={this.state.contacts} />
+        <Divider />
         <CommentsSidebar selection={this.state.selection} cm={this.cm} />
-      </div>)
+      </Paper>)
   }
 
   /* Select file fileURI, after navigating to profile profileURI if that is not null

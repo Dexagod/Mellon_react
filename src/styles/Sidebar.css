@@ -1,15 +1,3 @@
-.sidebarcomponentcontainer {
-  height: 85%;
-  width: 95%;
-  padding: 10px;
-  padding-top: 20px;
-  z-index: 300;
-  right: 15px;
-  top: 108px;
-  position: absolute;
-  background-color: #e9e9e9 !important;
-}
-
 .sidebarList {
   height: calc(100% - 35px);
   overflow-x: scroll;
@@ -19,14 +7,21 @@
   overflow-wrap: break-word;
 }
 
+.commentContainer {
+  height: 60%; /* accesscontroller is 40, title would be about 5 */
+}
+
 .uppercontainer {
-  height: 60%;
+  max-height: calc(100% - 150px); /* 150: height of .lowercontainer */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .lowercontainer {
-  height: 40%;
-  overflow-x: scroll;
-  padding-top: 10px;
+  padding-top: 5px;
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .disable-scrollbars::-webkit-scrollbar {

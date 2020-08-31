@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import solid from 'solid-auth-client'
 import CommunicationManager from '../util/CommunicationManager';
 import DocumentsView from './DocumentsView';

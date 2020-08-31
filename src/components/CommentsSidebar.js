@@ -1,6 +1,6 @@
 import React from 'react';
 import solid from 'solid-auth-client'
-import CommunicationManager, { Comment } from '../util/CommunicationManager';
+import CommunicationManager from '../util/CommunicationManager';
 
 import AsyncListItemComment from "./AsyncListItemComment"
 import List from '@material-ui/core/List';
@@ -129,7 +129,7 @@ export default class CommentsSidebar extends React.Component {
     )})
 
     return (
-      <div className="sidebarcomponentcontainer">
+      <div className="commentContainer">
         <div className="uppercontainer">
           {commentsList.length ? <p>Comments</p> : null}
           <List className="disable-scrollbars">

@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import solid from 'solid-auth-client'
 import CommunicationManager from '../util/CommunicationManager';
 import NotificationHandler from 'util/NotificationHandler';
-import {DataFactory} from "n3"
 import Container from 'react-bootstrap/Container'
 import Row from 'react-bootstrap/Row'
 import Col from 'react-bootstrap/Col'
 import "../styles/CommentAddComponent.css"
 import "../styles/MainContent.css"
+import { TextField, Button, TextareaAutosize } from '@material-ui/core';
 
 
 
@@ -19,7 +19,7 @@ export default class CommentAddComponent extends React.Component {
     this.notificationHandler = new NotificationHandler(this.cm, solid);
     this.comment = ""
     this.state = {commentDir: "", text: ""}
-   
+
     this.commentUpdate = this.commentUpdate.bind(this);
     this.getCommentsDir = this.getCommentsDir.bind(this);
     this.commentSent = this.commentSent.bind(this);
@@ -43,7 +43,7 @@ export default class CommentAddComponent extends React.Component {
 
   async submit() {
     console.log("SUBMITTING", this.state.commentDir, this.comment, this.props)
-    
+
     const session = await solid.currentSession()
     const webId = session.webId
     if(!webId) return;
@@ -94,31 +94,33 @@ export default class CommentAddComponent extends React.Component {
 
   render () {
     return (
-      <div className="commentaddcontainer">
+      <>
         <Container>
           <Col>
           <Row>
-            <textarea
-              rows="3"
-              value={this.state.text} 
-              onChange={this.commentUpdate} 
+            <TextareaAutosize
+              rows={2}
+              rowsMax={2}
+              value={this.state.text}
+              onChange={this.commentUpdate}
               placeholder="Write comment ..."
             />
           </Row>
           <Row>
-            <button className="col-m-" onClick={() => this.submit() }>Submit</button>
+            <TextField
+              id="commentDir"
+              label="Storage location"
+              style={{width: "100%"}} size="small"
+              value={this.state.commentDir} onChange={(e) => this.setState({commentDir: e.target.value})}
+              placeholder="path to store comments"
+            />
           </Row>
           <Row>
-              <p>storage location</p>
-              <input
-                id="commentDir"
-                defaultValue={this.state.commentDir}
-                placeholder="path to store comments"
-              />
-            </Row>
+            <Button variant="outlined" className="col-m-" onClick={() => this.submit() }>Submit</Button>
+          </Row>
           </Col>
         </Container>
-      </div>  
+      </>
     );
   }
 }

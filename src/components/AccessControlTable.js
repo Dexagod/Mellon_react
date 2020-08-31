@@ -1,5 +1,8 @@
 import React from 'react'
 import { useTable } from 'react-table'
+import { Button } from '@material-ui/core';
+import AddIcon from '@material-ui/icons/Add';
+import SaveIcon from '@material-ui/icons/Save';
 
 /*
   Copied parts of https://react-table.tanstack.com/docs/examples/editable-data
@@ -22,10 +25,11 @@ const EditableCell = ({
 	}
 	// We'll only update the external data when the input is blurred
 	const onBlur = () => {
+		if (value === null) { return }
 		let t_value = value.trim();
 		updateMyData(index, id, t_value.toLowerCase() === "everyone" ? null : t_value);
 	}
-	return <input value={value === null ? "Everyone" : value} placeholder="WebID or 'Everyone'" onChange={onChange} onBlur={onBlur} />;
+	return <input value={value === null ? "Everyone" : value} placeholder="WebID" onChange={onChange} onBlur={onBlur} readOnly={value === null} />;
 }
 
 const CheckboxCell = ({
@@ -155,7 +159,7 @@ export default function AccessControlTable({ tableData, submitValues }) {
 	// Render the UI for your table
 	return (
 		<>
-			<table {...getTableProps()} className="access-control-table">
+			<table {...getTableProps()} style={{width: "100%"}} className="access-control-table">
 				<thead>
 					{headerGroups.map(headerGroup => (
 						<tr {...headerGroup.getHeaderGroupProps()}>
@@ -179,8 +183,8 @@ export default function AccessControlTable({ tableData, submitValues }) {
 				</tbody>
 			</table>
 			<>
-				<button onClick={addRow}>Add new</button>
-				<button onClick={() => submitValues(data)}>Save permissions</button>
+				<Button variant="outlined" title="Add new" onClick={addRow}><AddIcon /></Button>
+				<Button variant="contained" title="Save permissions" color="primary" startIcon={<SaveIcon />} onClick={() => submitValues(data)}>Save</Button>
 			</>
 		</>
 	)
