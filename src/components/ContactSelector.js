@@ -2,6 +2,7 @@ import * as React from "react";
 import "../styles/ContactSelector.css"
 
 import { Contact } from '../util/CommunicationManager'
+import { Button } from "@material-ui/core";
 
 export default class ContactSelector extends React.Component{
   constructor(props){
@@ -51,12 +52,12 @@ export default class ContactSelector extends React.Component{
       <div className="contactsselector">
         <p>Select contacts to notify</p>
         <p style={{fontSize: "small"}}>People below will be able to read your paper</p>
-        <button onClick={() => this.addContact()}>addContact</button>
+        <Button variant="outlined" onClick={() => this.addContact()}>Add contact</Button>
 
         <form>
           {contacts}
         </form>
-        <button onClick={() => {this.submit()}}>Submit</button>
+        <Button color="primary" variant="contained" onClick={() => {this.submit()}}>Submit</Button>
       </div>
     );
   }

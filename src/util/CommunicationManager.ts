@@ -393,6 +393,7 @@ export default class CommunicationManager {
       return;
     }
     let comments = [];
+    data.clearCache(metadaLocationURI);
     let metadata = data[metadaLocationURI];
     for await (let subject of metadata.subjects) {
       if (await subject.type.value === SIOC + "Post"
@@ -450,88 +451,17 @@ export default class CommunicationManager {
   async getNotificationFromId(
     notificationId: string
   ): Promise<Notification> {
-    let store = await this.getDataStoreFromFile(notificationId);
-    const typeQuad = await store.getQuads(
-      notificationId,
-      RDF + "type",
-      null,
-      null
-    )[0];
-    const type =
-      typeQuad && (typeQuad.object.id || typeQuad.object.value);
+    let resource = await data[notificationId];
 
-    const commentQuad = await store.getQuads(
-      notificationId,
-      RDFS + "comment",
-      null,
-      null
-    )[0];
-    const comment =
-      commentQuad &&
-      (commentQuad.object.id || commentQuad.object.value);
-
-    const actorQuad = await store.getQuads(
-      notificationId,
-      AS + "actor",
-      null,
-      null
-    )[0];
-    const actor =
-      actorQuad &&
-      (actorQuad.object.id || actorQuad.object.value);
-
-    const objectQuad = await store.getQuads(
-      notificationId,
-      AS + "object",
-      null,
-      null
-    )[0];
-    const objectId =
-      objectQuad &&
-      (objectQuad.object.id || objectQuad.object.value);
-
-    const objectTypeQuad = await store.getQuads(
-      objectId,
-      RDF + "type",
-      null,
-      null
-    )[0];
-    const objectType =
-      objectTypeQuad &&
-      (objectTypeQuad.object.id || objectTypeQuad.object.value);
-
-    const objectReplyOfQuad = await store.getQuads(
-      objectId,
-      SIOC + "reply_of",
-      null,
-      null
-    )[0];
-    const objectReplyOf =
-      objectReplyOfQuad &&
-      (objectReplyOfQuad.object.id ||
-        objectReplyOfQuad.object.value);
-
-    const objectCreatedAtQuad = await store.getQuads(
-      objectId,
-      AS + "published",
-      null,
-      null
-    )[0];
-    const objectCreatedAt =
-      objectCreatedAtQuad &&
-      (objectCreatedAtQuad.object.id ||
-        objectCreatedAtQuad.object.value);
-
-    const objectCreatorQuad = await store.getQuads(
-      objectId,
-      SIOC + "has_creator",
-      null,
-      null
-    )[0];
-    const objectCreator =
-      objectCreatorQuad &&
-      (objectCreatorQuad.object.id ||
-        objectCreatorQuad.object.value);
+    const type = await resource.type.value
+    const comment = await resource[RDFS + "comment"].value
+    const actor = await resource[AS + "actor"].value
+    const object = await resource[AS + "object"]
+    const objectId = object.value
+    const objectType = await object.type
+    const objectReplyOf = await object[SIOC + "reply_of"].value
+    const objectCreatedAt = await object[AS + "published"].value
+    const objectCreator = await object[SIOC + "has_creator"].value
 
     const notification: Notification = {
       id: notificationId,
