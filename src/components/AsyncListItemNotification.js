@@ -63,7 +63,7 @@ export default class AsyncListItemNotification extends React.Component {
 
   async getCreatorName(creatorId){
     if(!creatorId) {console.error("No creator name for notifcation."); return}
-    const name = await this.cm.getFullNameFromProfile(creatorId)
+    const name = await this.cm.fetchName(creatorId) || "";
     if(!this.running || !name) return
     if(name) this.setState({creatorName: name})
   }

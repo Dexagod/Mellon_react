@@ -99,37 +99,6 @@ export default class CommunicationManager {
     return path;
   }
 
-  async getFullNameFromProfile(
-    profileId: string
-  ): Promise<string> {
-    let store = await this.getDataStoreFromFile(profileId);
-    if (store) {
-      return await this.getFullNameFromStore(store);
-    }
-    return "";
-  }
-
-  async getFullNameFromStore(
-    store: N3.Store
-  ): Promise<string> {
-    let names = [];
-    names = await store.getQuads(
-      null,
-      "http://www.w3.org/2006/vcard/ns#fn",
-      null,
-      null
-    );
-    if (names.length === 0)
-      names = await store.getQuads(
-        null,
-        FOAF + "name",
-        null,
-        null
-      );
-    if (names.length === 0) return "";
-    return names[0].object.id;
-  }
-
   async getContacts(webId: string | null = null) {
     if (webId === null) {  // webId === null => webId of user logged in
       let session = await this.auth.currentSession();
@@ -233,7 +202,7 @@ export default class CommunicationManager {
                 continue
               }
               let paperURI = paper.value;
-              let title = await paper[DCTERMS + "title"].value;
+              let title = await data[metaFile][DCTERMS + "title"].value;
 
               // To make sure the paper itself is there and readable
               await this.auth.fetch(paperURI, { method: 'HEAD' })
@@ -414,7 +383,7 @@ export default class CommunicationManager {
     return id;
   }
 
-  async getPaperCommentIds(paperMetadata: PaperMetadata) {
+  async getPaperComments(paperMetadata: PaperMetadata) {
     const metadaLocationURI = paperMetadata.metadatalocation;
     if (!metadaLocationURI) {
       console.error(
@@ -423,12 +392,20 @@ export default class CommunicationManager {
       );
       return;
     }
-    const store = await this.getDataStoreFromFile(
-      metadaLocationURI
-    );
-    return (
-      await store.getQuads(null, SIOC + "reply_of", null, null)
-    ).map((quad) => quad.subject.id || quad.subject.value);
+    let comments = [];
+    let metadata = data[metadaLocationURI];
+    for await (let subject of metadata.subjects) {
+      if (await subject.type.value === SIOC + "Post"
+        && await subject[SIOC + "reply_of"].value === paperMetadata.id) {
+        comments.push({
+          id: subject.value,
+          createdAt: new Date(await subject[SIOC + "created_at"].value),
+          creator: await subject[SIOC + "has_creator"].value,
+          replyOf: paperMetadata.id
+        });
+      }
+    }
+    return comments;
   }
 
   async getCommentData(commentId: string) {

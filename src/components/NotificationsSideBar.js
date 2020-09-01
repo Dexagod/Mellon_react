@@ -65,7 +65,7 @@ export default class NotificationsSideBar extends React.Component {
       <AsyncListItemNotification key={notification.id} metadata={notification} cm={this.cm} navigateToFile={this.props.navigateToFile} />
     )})
     return (
-      <Paper variant="elevation" elevation={10} className="sidebarcomponentcontainer col-md-4">
+      <Paper variant="elevation" elevation={10} className="sidebarcomponentcontainer col-md-5">
         <div className="uppercontainer">
         <p>Notifications</p>
           <div className="sidebarList disable-scrollbars">

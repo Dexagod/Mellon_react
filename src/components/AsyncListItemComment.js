@@ -11,10 +11,8 @@ import CommunicationManager from 'util/CommunicationManager';
 
 import "../styles/AsyncListItem.css"
 
-
-
 export default class AsyncListItemComment extends React.Component {
-  
+
   constructor(props){
     super(props)
     this.running = true;
@@ -24,15 +22,16 @@ export default class AsyncListItemComment extends React.Component {
     this.state = this.getNewState(props.id);
   }
 
-  getNewState(id){
+  getNewState(){
     return ({
       comment: {
-        id: id,
+        id: "",
         replyOf: "",
         createdAt: null,
         creator: "",
         content: "",
         note: "",
+        ...this.props.comment
       },
       creatorName: ""
     })
@@ -41,7 +40,6 @@ export default class AsyncListItemComment extends React.Component {
   componentDidMount() {
     this.initComponent()
   }
-  
 
   componentDidUpdate(prevprops, prevstate){
     if(this.props.id !== prevprops.id) {
@@ -51,15 +49,17 @@ export default class AsyncListItemComment extends React.Component {
   }
 
   async initComponent(){
-    const comment = await this.cm.getCommentData(this.state.comment.id);
-    if(!this.running || !comment) return
-    this.props.updateDate({id: this.state.comment.id, date: comment.createdAt})
-    this.setState({comment: comment})
-    this.getCreatorName(comment.creator)
+    const data = await this.cm.getCommentData(this.state.comment.id);
+    if(!this.running || !data) return
+    this.setState({comment: {
+      ...this.state.comment,
+      ...data
+    }});
+    this.getCreatorName(this.state.comment.creator)
   }
 
   async getCreatorName(creatorId){
-    const name = await this.cm.getFullNameFromProfile(creatorId)
+    const name = await this.cm.fetchName(creatorId) || "";
     if(!this.running) return
     if(name) this.setState({creatorName: name})
   }
@@ -74,13 +74,13 @@ export default class AsyncListItemComment extends React.Component {
     const header = <div>{timeString} In reply to: <a href={this.state.comment.replyOf}>{paperMetadata.title}</a></div>
     return (
       <div key={this.props.id}>
-    
+
         <ListItem className="flex-start listitem" >
           <ListItemAvatar>
             <Avatar alt={this.state.creatorName} src={require("../assets/comment.svg")}  />
           </ListItemAvatar>
             <ListItemText
-              primary={header} 
+              primary={header}
               secondary={
                 <React.Fragment>
                   <Typography
