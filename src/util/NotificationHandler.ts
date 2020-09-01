@@ -61,17 +61,20 @@ export default class NotificationHandler {
    * LDN inbox discovery.
    * @method getNotificationsFromInbox
    * @param resourceUri {string}
-   * @return {Promise<Array<Notification>>}
+   * @return {Promise<Array<object>>}
    */
-  async getNotificationsForURI (inboxURI : string) : Promise<Array<Notification>> {
+  async getNotificationIdsForURI (inboxURI : string) : Promise<Array<object>> {
     inboxURI = await this.discoverInboxUri(inboxURI) || inboxURI;
     const store = await this.cm.getDataStoreFromFile(inboxURI)
-    const notificationIds = (await store.getQuads(inboxURI, "http://www.w3.org/ns/ldp#contains", null, null)).map(quad => (quad.object.id || quad.object.value))
-    let notifications = []
-    for (let notificationId of notificationIds) {
-      notifications.push(await this.cm.getNotificationFromId(notificationId))
-    } 
-    return await Promise.all(notifications);
+    const notifications = (await store.getQuads(inboxURI, "http://www.w3.org/ns/ldp#contains", null, null))
+      .map(quad => {
+        let id = quad.object.id || quad.object.value;
+        return {
+          id,
+          date: parseFloat(store.getQuads(id, "http://www.w3.org/ns/posix/stat#mtime", null, null)[0].object.value)
+        }
+      })
+    return notifications;
   }
 
   /**

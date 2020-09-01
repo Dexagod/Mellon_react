@@ -93,11 +93,11 @@ export default class CommentsSidebar extends React.Component {
     let comments = (await this.cm.getPaperComments(documentMetadata))
     comments.sort((a, b) => { return b.createdAt.getTime() - a.createdAt.getTime()})
     if(comments)
-      this.setState(state => ({comments: comments, allLoaded: state.startIndex === 0 && state.endIndex >= comments.length}));
+      this.setState(state => ({comments, allLoaded: state.startIndex === 0 && state.endIndex >= comments.length}));
     this.updaterunning = false;
   }
 
-  async showMore() {
+  showMore() {
     this.setState(state => ({
       endIndex: state.endIndex + this.loadSize,
       allLoaded: state.startIndex === 0 && state.endIndex  + this.loadSize >= state.comments.length

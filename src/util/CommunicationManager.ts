@@ -192,16 +192,15 @@ export default class CommunicationManager {
             // Todo:: parse all files, not only metadata files, and search for references of papers, as the metadata can be stored in the document itself for some formats
             if (metaFile.value && metaFile.value.includes("_meta")) { // TODO: end with .meta?
               let metadataURI = metaFile.value
-              let paper: any = null
+              let paperURI: string = "";
               try {
                 data.clearCache(metaFile)
-                paper = await data[metaFile][RDF + "subject"];
+                paperURI = await data[metaFile][RDF + "subject"].value;
 
               } catch {
                 console.warn(`Could not read metafile '${metadataURI}'.`);
                 continue
               }
-              let paperURI = paper.value;
               let title = await data[metaFile][DCTERMS + "title"].value;
 
               // To make sure the paper itself is there and readable
@@ -220,7 +219,7 @@ export default class CommunicationManager {
                 id: paperURI,
                 title: title,
                 metadatalocation: metadataURI,
-                publisher: await paper[DCTERMS + "publisher"].value
+                publisher: await data[metaFile][DCTERMS + "publisher"].value
               });
             }
           } catch { /* something went for this file */ }
@@ -458,7 +457,7 @@ export default class CommunicationManager {
     const actor = await resource[AS + "actor"].value
     const object = await resource[AS + "object"]
     const objectId = object.value
-    const objectType = await object.type
+    const objectType = await object.type.value
     const objectReplyOf = await object[SIOC + "reply_of"].value
     const objectCreatedAt = await object[AS + "published"].value
     const objectCreator = await object[SIOC + "has_creator"].value
@@ -476,6 +475,7 @@ export default class CommunicationManager {
         hasCreator: objectCreator,
       },
     };
+    console.dir(notification)
     return notification;
   }
 }
